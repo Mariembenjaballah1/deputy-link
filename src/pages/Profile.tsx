@@ -1,13 +1,23 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, User, MapPin, Phone, LogOut, ChevronLeft, Settings, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { motion } from 'framer-motion';
+import { useAuthStore } from '@/store/authStore';
+import { wilayas } from '@/data/mockData';
 
 export default function Profile() {
+  const navigate = useNavigate();
+  const { user: authUser, logout } = useAuthStore();
+  
   const user = {
-    phone: '+213 555 123 456',
-    wilaya: 'الجزائر',
+    phone: authUser?.phone ? `+216 ${authUser.phone}` : '+216 XX XXX XXX',
+    wilaya: wilayas.find(w => w.id === authUser?.wilayaId)?.name || 'تونس',
+  };
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
   };
 
   const menuItems = [
@@ -73,7 +83,12 @@ export default function Profile() {
           transition={{ delay: 0.2 }}
           className="mt-6"
         >
-          <Button variant="outline" size="lg" className="w-full gap-2 text-destructive border-destructive/30 hover:bg-destructive/10">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="w-full gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
             <LogOut className="w-5 h-5" />
             تسجيل الخروج
           </Button>
