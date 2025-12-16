@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, BarChart3, 
   Settings, LogOut, Menu, X, Bell, Filter,
-  Eye, Reply, Forward, XCircle, Clock, CheckCircle, FileText, Printer, Download
+  Eye, Reply, XCircle, Clock, CheckCircle, Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore } from '@/store/authStore';
-import { allComplaints, wilayas, dairas, mps } from '@/data/mockData';
-import { Complaint, categoryLabels, statusLabels, categoryMinistries } from '@/types';
+import { allComplaints, wilayas, dairas } from '@/data/mockData';
+import { Complaint, categoryLabels, statusLabels } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -21,116 +21,28 @@ const sidebarItems = [
   { icon: Settings, label: 'الإعدادات', id: 'settings' },
 ];
 
-const generateOfficialLetter = (complaint: Complaint, mp: typeof mps[0]) => {
-  const today = new Date().toLocaleDateString('ar-TN', { year: 'numeric', month: 'long', day: 'numeric' });
-  const ministry = categoryMinistries[complaint.category];
-  const wilaya = wilayas.find(w => w.id === complaint.wilayaId)?.name || '';
-  const daira = dairas.find(d => d.id === complaint.dairaId)?.name || '';
-
-  return `الجمهورية التونسية
-مجلس نواب الشعب
-
-📅 التاريخ: ${today}
-
-إلى
-السيد/السيدة
-وزير ${ministry}
-
-الموضوع: إحالة شكوى مواطن
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-حضرة السيد/السيدة الوزير،
-
-تبعا للمهام الدستورية الموكولة إلينا، وحرصًا على متابعة مشاغل المواطنين، يشرفني أن أتقدم إلى سيادتكم بهذه المراسلة قصد النظر في الشكوى التالية:
-
-📌 موضوع الشكوى:
-${categoryLabels[complaint.category]}
-
-📍 مكان الشكوى:
-الولاية: ${wilaya}
-البلدية: ${daira}
-
-📝 نص الشكوى:
-${complaint.content}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-وعليه، أرجو من سيادتكم التفضل باتخاذ ما ترونه مناسبًا في شأن هذه الوضعية، وإعلامنا بالإجراءات المتخذة في الإبان.
-
-وتفضلوا بقبول فائق عبارات الاحترام والتقدير.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-الإمضاء
-${mp.name}
-نائب الشعب عن دائرة ${mp.wilaya}
-رقم الهاتف: ${mp.phone || '+216 XX XXX XXX'}
-البريد الإلكتروني: ${mp.email || 'mp@assembly.tn'}`;
-};
-
-export default function MPDashboard() {
+export default function LocalDeputyDashboard() {
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
-  const [showLetterModal, setShowLetterModal] = useState(false);
-  const [officialLetter, setOfficialLetter] = useState('');
   const [replyText, setReplyText] = useState('');
 
-  // Filter complaints for MP (non-municipal)
-  const mpComplaints = allComplaints.filter(c => c.assignedTo === 'mp');
-  const currentMP = mps[0]; // Mock current MP
+  // Filter complaints for local deputy (only municipal complaints)
+  const deputyComplaints = allComplaints.filter(c => 
+    c.assignedTo === 'local_deputy' && c.category === 'municipal'
+  );
   
   const stats = {
-    total: mpComplaints.length,
-    pending: mpComplaints.filter(c => c.status === 'pending').length,
-    viewed: mpComplaints.filter(c => c.status === 'viewed').length,
-    replied: mpComplaints.filter(c => c.status === 'replied').length,
-    forwarded: mpComplaints.filter(c => c.status === 'forwarded').length,
+    total: deputyComplaints.length,
+    pending: deputyComplaints.filter(c => c.status === 'pending').length,
+    viewed: deputyComplaints.filter(c => c.status === 'viewed').length,
+    replied: deputyComplaints.filter(c => c.status === 'replied').length,
   };
 
   const handleStatusChange = (status: string) => {
     toast.success(`تم تغيير الحالة إلى: ${statusLabels[status as keyof typeof statusLabels]}`);
     setSelectedComplaint(null);
-  };
-
-  const handleGenerateLetter = (complaint: Complaint) => {
-    const letter = generateOfficialLetter(complaint, currentMP);
-    setOfficialLetter(letter);
-    setShowLetterModal(true);
-  };
-
-  const handlePrintLetter = () => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html dir="rtl">
-          <head>
-            <title>مراسلة رسمية</title>
-            <style>
-              body { font-family: 'Tajawal', Arial, sans-serif; padding: 40px; line-height: 1.8; }
-              pre { white-space: pre-wrap; font-family: inherit; }
-            </style>
-          </head>
-          <body><pre>${officialLetter}</pre></body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
-    toast.success('جاري الطباعة...');
-  };
-
-  const handleDownloadPDF = () => {
-    const blob = new Blob([officialLetter], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `مراسلة_رسمية_${selectedComplaint?.id || ''}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('تم تحميل الملف');
   };
 
   const handleReply = () => {
@@ -141,37 +53,34 @@ export default function MPDashboard() {
     }
   };
 
-  const handleForward = () => {
-    if (selectedComplaint) {
-      handleGenerateLetter(selectedComplaint);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 right-0 z-50 w-64 bg-primary text-primary-foreground transform transition-transform duration-300 lg:translate-x-0",
+        "fixed inset-y-0 right-0 z-50 w-64 bg-secondary text-secondary-foreground transform transition-transform duration-300 lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
       )}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold">شكوى</h1>
+            <div className="flex items-center gap-2">
+              <Building2 className="w-6 h-6" />
+              <h1 className="text-xl font-bold">نائب الجهة</h1>
+            </div>
             <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
               <X className="w-6 h-6" />
             </button>
           </div>
           
           {/* User Info */}
-          <div className="flex items-center gap-3 mb-8 p-3 bg-primary-foreground/10 rounded-xl">
+          <div className="flex items-center gap-3 mb-8 p-3 bg-secondary-foreground/10 rounded-xl">
             <img 
-              src={user?.image || 'https://randomuser.me/api/portraits/men/1.jpg'} 
+              src={user?.image || 'https://randomuser.me/api/portraits/men/10.jpg'} 
               alt={user?.name}
               className="w-10 h-10 rounded-full"
             />
             <div>
-              <p className="font-medium">{user?.name || 'نائب'}</p>
-              <p className="text-xs text-primary-foreground/70">نائب الشعب</p>
+              <p className="font-medium">{user?.name || 'نائب الجهة'}</p>
+              <p className="text-xs text-secondary-foreground/70">نائب جهة - بلدية</p>
             </div>
           </div>
 
@@ -183,8 +92,8 @@ export default function MPDashboard() {
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
                   activeTab === item.id 
-                    ? "bg-primary-foreground text-primary" 
-                    : "hover:bg-primary-foreground/10"
+                    ? "bg-secondary-foreground text-secondary" 
+                    : "hover:bg-secondary-foreground/10"
                 )}
               >
                 <item.icon className="w-5 h-5" />
@@ -198,7 +107,7 @@ export default function MPDashboard() {
           <Link to="/auth">
             <Button 
               variant="ghost" 
-              className="w-full justify-start gap-3 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+              className="w-full justify-start gap-3 text-secondary-foreground/70 hover:text-secondary-foreground hover:bg-secondary-foreground/10"
               onClick={logout}
             >
               <LogOut className="w-5 h-5" />
@@ -233,17 +142,20 @@ export default function MPDashboard() {
           {activeTab === 'dashboard' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {/* Info Banner */}
-              <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 mb-6">
-                <p className="font-bold text-primary mb-1">📋 مهامك كنائب شعب</p>
+              <div className="bg-secondary/10 border border-secondary/30 rounded-xl p-4 mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Building2 className="w-5 h-5 text-secondary" />
+                  <p className="font-bold text-secondary">شكاوى بلدية فقط</p>
+                </div>
                 <p className="text-sm text-muted-foreground">
-                  تصلك الشكاوى غير البلدية • يمكنك إنشاء مراسلات رسمية للوزارات المختصة
+                  تصلك تلقائياً جميع الشكاوى المصنفة "بلدية" الخاصة بدائرتك
                 </p>
               </div>
 
               {/* Stats Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <div className="bg-card rounded-2xl p-4 border border-border">
-                  <MessageSquare className="w-8 h-8 text-primary mb-2" />
+                  <MessageSquare className="w-8 h-8 text-secondary mb-2" />
                   <p className="text-2xl font-bold text-foreground">{stats.total}</p>
                   <p className="text-sm text-muted-foreground">إجمالي الشكاوى</p>
                 </div>
@@ -262,17 +174,12 @@ export default function MPDashboard() {
                   <p className="text-2xl font-bold text-foreground">{stats.replied}</p>
                   <p className="text-sm text-muted-foreground">تم الرد</p>
                 </div>
-                <div className="bg-card rounded-2xl p-4 border border-border">
-                  <Forward className="w-8 h-8 text-accent mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{stats.forwarded}</p>
-                  <p className="text-sm text-muted-foreground">تم التحويل</p>
-                </div>
               </div>
 
               {/* Recent Complaints */}
               <h3 className="text-lg font-bold text-foreground mb-4">الشكاوى الأخيرة</h3>
               <div className="space-y-3">
-                {mpComplaints.slice(0, 5).map((complaint) => (
+                {deputyComplaints.slice(0, 5).map((complaint) => (
                   <div 
                     key={complaint.id}
                     onClick={() => setSelectedComplaint(complaint)}
@@ -285,17 +192,16 @@ export default function MPDashboard() {
                         complaint.status === 'pending' && "bg-amber-100 text-amber-700",
                         complaint.status === 'viewed' && "bg-blue-100 text-blue-700",
                         complaint.status === 'replied' && "bg-green-100 text-green-700",
-                        complaint.status === 'forwarded' && "bg-purple-100 text-purple-700",
                       )}>
                         {statusLabels[complaint.status]}
                       </span>
                     </div>
                     <p className="text-foreground line-clamp-2">{complaint.content}</p>
                     <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                      <span className="bg-primary/10 text-primary px-2 py-1 rounded">
-                        {categoryLabels[complaint.category]}
+                      <span className="bg-secondary/10 text-secondary px-2 py-1 rounded">
+                        🏛️ {categoryLabels[complaint.category]}
                       </span>
-                      <span>← {categoryMinistries[complaint.category]}</span>
+                      <span>{new Date(complaint.createdAt).toLocaleDateString('ar-TN')}</span>
                     </div>
                   </div>
                 ))}
@@ -314,7 +220,7 @@ export default function MPDashboard() {
               </div>
               
               <div className="space-y-3">
-                {mpComplaints.map((complaint) => (
+                {deputyComplaints.map((complaint) => (
                   <div 
                     key={complaint.id}
                     onClick={() => setSelectedComplaint(complaint)}
@@ -327,7 +233,6 @@ export default function MPDashboard() {
                         complaint.status === 'pending' && "bg-amber-100 text-amber-700",
                         complaint.status === 'viewed' && "bg-blue-100 text-blue-700",
                         complaint.status === 'replied' && "bg-green-100 text-green-700",
-                        complaint.status === 'forwarded' && "bg-purple-100 text-purple-700",
                       )}>
                         {statusLabels[complaint.status]}
                       </span>
@@ -336,6 +241,7 @@ export default function MPDashboard() {
                     <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                       <span>{categoryLabels[complaint.category]}</span>
                       <span>{wilayas.find(w => w.id === complaint.wilayaId)?.name}</span>
+                      <span>{dairas.find(d => d.id === complaint.dairaId)?.name}</span>
                       <span>{new Date(complaint.createdAt).toLocaleDateString('ar-TN')}</span>
                     </div>
                   </div>
@@ -344,23 +250,31 @@ export default function MPDashboard() {
             </motion.div>
           )}
 
-          {/* Stats & Settings */}
-          {(activeTab === 'stats' || activeTab === 'settings') && (
+          {/* Stats */}
+          {activeTab === 'stats' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
               <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">قريباً</p>
+              <p className="text-muted-foreground">الإحصائيات قريباً</p>
+            </motion.div>
+          )}
+
+          {/* Settings */}
+          {activeTab === 'settings' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+              <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">الإعدادات قريباً</p>
             </motion.div>
           )}
         </div>
       </main>
 
       {/* Complaint Detail Modal */}
-      {selectedComplaint && !showLetterModal && (
+      {selectedComplaint && (
         <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-card rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto"
+            className="bg-card rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto"
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -373,18 +287,15 @@ export default function MPDashboard() {
               <p className="text-foreground mb-4">{selectedComplaint.content}</p>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
+                <span className="text-xs bg-secondary/10 text-secondary px-3 py-1 rounded-full">
                   {categoryLabels[selectedComplaint.category]}
                 </span>
                 <span className="text-xs bg-muted text-muted-foreground px-3 py-1 rounded-full">
                   {wilayas.find(w => w.id === selectedComplaint.wilayaId)?.name}
                 </span>
-              </div>
-
-              {/* Ministry Info */}
-              <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 mb-4">
-                <p className="text-xs text-muted-foreground mb-1">الوزارة المختصة</p>
-                <p className="font-medium text-accent">{categoryMinistries[selectedComplaint.category]}</p>
+                <span className="text-xs bg-muted text-muted-foreground px-3 py-1 rounded-full">
+                  {dairas.find(d => d.id === selectedComplaint.dairaId)?.name}
+                </span>
               </div>
 
               {/* Reply Section */}
@@ -394,7 +305,7 @@ export default function MPDashboard() {
                   placeholder="اكتب ردك هنا..."
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  className="min-h-[80px]"
+                  className="min-h-[100px]"
                 />
               </div>
 
@@ -407,63 +318,9 @@ export default function MPDashboard() {
                   <Reply className="w-4 h-4" />
                   إرسال الرد
                 </Button>
-                <Button variant="accent" className="gap-2 col-span-2" onClick={handleForward}>
-                  <FileText className="w-4 h-4" />
-                  إنشاء مراسلة للوزارة
-                </Button>
                 <Button variant="outline" className="gap-2 text-destructive col-span-2" onClick={() => handleStatusChange('out_of_scope')}>
                   <XCircle className="w-4 h-4" />
                   خارج الاختصاص
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Official Letter Modal */}
-      {showLetterModal && (
-        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold">المراسلة الرسمية</h3>
-                <button onClick={() => setShowLetterModal(false)}>
-                  <X className="w-6 h-6 text-muted-foreground" />
-                </button>
-              </div>
-
-              <div className="bg-muted/50 rounded-xl p-4 mb-4 font-mono text-sm whitespace-pre-wrap leading-relaxed">
-                <Textarea
-                  value={officialLetter}
-                  onChange={(e) => setOfficialLetter(e.target.value)}
-                  className="min-h-[400px] font-mono text-sm bg-transparent border-0 resize-none"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <Button variant="default" className="flex-1 gap-2" onClick={handlePrintLetter}>
-                  <Printer className="w-4 h-4" />
-                  طباعة
-                </Button>
-                <Button variant="outline" className="flex-1 gap-2" onClick={handleDownloadPDF}>
-                  <Download className="w-4 h-4" />
-                  تحميل
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  className="flex-1 gap-2" 
-                  onClick={() => {
-                    handleStatusChange('forwarded');
-                    setShowLetterModal(false);
-                  }}
-                >
-                  <Forward className="w-4 h-4" />
-                  تأكيد التحويل
                 </Button>
               </div>
             </div>

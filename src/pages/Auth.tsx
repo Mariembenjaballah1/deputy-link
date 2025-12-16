@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Lock, ArrowLeft, User, Users, Shield } from 'lucide-react';
+import { Phone, Lock, ArrowLeft, User, Users, Shield, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types/auth';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const roles: { id: UserRole; label: string; icon: typeof User; description: string }[] = [
   { id: 'citizen', label: 'مواطن', icon: User, description: 'تقديم ومتابعة الشكاوى' },
-  { id: 'mp', label: 'نائب', icon: Users, description: 'إدارة شكاوى المواطنين' },
+  { id: 'mp', label: 'نائب الشعب', icon: Users, description: 'إدارة شكاوى المواطنين' },
+  { id: 'local_deputy', label: 'نائب الجهة', icon: Building2, description: 'إدارة الشكاوى البلدية' },
   { id: 'admin', label: 'مدير', icon: Shield, description: 'إدارة النظام' },
 ];
 
@@ -40,11 +40,12 @@ export default function Auth() {
       login(phone, selectedRole);
       toast.success('تم تسجيل الدخول بنجاح');
       
-      // Redirect based on role
       if (selectedRole === 'citizen') {
         navigate('/');
       } else if (selectedRole === 'mp') {
         navigate('/mp-dashboard');
+      } else if (selectedRole === 'local_deputy') {
+        navigate('/local-deputy-dashboard');
       } else {
         navigate('/admin');
       }
@@ -55,7 +56,6 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary to-primary/80 flex flex-col">
-      {/* Header */}
       <header className="p-4">
         {step !== 'role' && (
           <button 
@@ -68,7 +68,6 @@ export default function Auth() {
         )}
       </header>
 
-      {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -80,14 +79,13 @@ export default function Auth() {
         </motion.div>
 
         <AnimatePresence mode="wait">
-          {/* Role Selection */}
           {step === 'role' && (
             <motion.div
               key="role"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
-              className="w-full max-w-sm space-y-4"
+              className="w-full max-w-sm space-y-3"
             >
               <h2 className="text-xl font-bold text-primary-foreground text-center mb-6">
                 اختر نوع الحساب
@@ -110,7 +108,6 @@ export default function Auth() {
             </motion.div>
           )}
 
-          {/* Phone Input */}
           {step === 'phone' && (
             <motion.div
               key="phone"
@@ -156,7 +153,6 @@ export default function Auth() {
             </motion.div>
           )}
 
-          {/* OTP Input */}
           {step === 'otp' && (
             <motion.div
               key="otp"
