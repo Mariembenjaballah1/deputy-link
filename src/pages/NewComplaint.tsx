@@ -1,24 +1,37 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Camera, X, Check } from 'lucide-react';
+import { ArrowRight, Camera, X, Check, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-import { ComplaintCategory, categoryLabels } from '@/types';
-import { wilayas, dairas, mps } from '@/data/mockData';
+import { ComplaintCategory, categoryLabels, categoryMinistries, isMunicipalCategory } from '@/types';
+import { wilayas, dairas, mps, localDeputies } from '@/data/mockData';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 
 const categories: { id: ComplaintCategory; label: string; icon: string }[] = [
-  { id: 'security', label: 'أمنية', icon: '🛡️' },
-  { id: 'military', label: 'عسكرية', icon: '⭐' },
+  { id: 'municipal', label: 'بلدية', icon: '🏛️' },
+  { id: 'health', label: 'صحية', icon: '🏥' },
   { id: 'environmental', label: 'بيئية', icon: '🌿' },
   { id: 'social', label: 'اجتماعية', icon: '👥' },
-  { id: 'health', label: 'صحية', icon: '🏥' },
   { id: 'employment', label: 'شغلية', icon: '💼' },
-  { id: 'municipal', label: 'بلدية', icon: '🏛️' },
+  { id: 'security', label: 'أمنية', icon: '🛡️' },
+  { id: 'military', label: 'عسكرية', icon: '⭐' },
+  { id: 'education_primary', label: 'تعليم ابتدائي/ثانوي', icon: '📚' },
+  { id: 'education_higher', label: 'تعليم عالي', icon: '🎓' },
+  { id: 'transport', label: 'نقل عمومي', icon: '🚌' },
+  { id: 'housing', label: 'سكن وعمران', icon: '🏠' },
+  { id: 'infrastructure', label: 'بنية تحتية', icon: '🛣️' },
+  { id: 'energy_water', label: 'طاقة ومياه', icon: '💡' },
+  { id: 'agriculture', label: 'فلاحة', icon: '🌾' },
+  { id: 'telecom', label: 'اتصالات', icon: '📡' },
+  { id: 'youth_sports', label: 'شباب ورياضة', icon: '⚽' },
+  { id: 'culture', label: 'ثقافة', icon: '🎭' },
+  { id: 'public_services', label: 'خدمات عمومية', icon: '🏢' },
+  { id: 'corruption', label: 'فساد إداري', icon: '⚖️' },
+  { id: 'other', label: 'أخرى', icon: '📋' },
 ];
 
 export default function NewComplaint() {
@@ -34,13 +47,20 @@ export default function NewComplaint() {
     ? dairas.filter(d => d.wilayaId === selectedWilaya)
     : [];
 
-  const assignedMP = selectedWilaya 
+  const isMunicipal = category ? isMunicipalCategory(category) : false;
+
+  const assignedMP = selectedWilaya && !isMunicipal
     ? mps.find(mp => mp.wilayaId === selectedWilaya)
     : null;
 
+  const assignedLocalDeputy = selectedWilaya && selectedDaira && isMunicipal
+    ? localDeputies.find(ld => ld.wilayaId === selectedWilaya && ld.dairaId === selectedDaira)
+    : null;
+
+  const ministry = category && !isMunicipal ? categoryMinistries[category] : null;
+
   const handleImageUpload = () => {
     if (images.length < 3) {
-      // Simulating image upload
       setImages([...images, `https://picsum.photos/200/200?random=${Date.now()}`]);
     }
   };
@@ -50,23 +70,27 @@ export default function NewComplaint() {
   };
 
   const handleSubmit = () => {
-    // Generate complaint ID
     const complaintId = `C${Date.now().toString().slice(-6)}`;
     
-    toast.success('تم إرسال الشكوى بنجاح', {
-      description: `رقم الشكوى: ${complaintId}`,
-    });
+    if (isMunicipal) {
+      toast.success('تم إرسال الشكوى إلى نائب الجهة', {
+        description: `رقم الشكوى: ${complaintId}`,
+      });
+    } else {
+      toast.success('تم إرسال الشكوى إلى نائب الشعب', {
+        description: `رقم الشكوى: ${complaintId} - سيتم توجيهها إلى ${ministry}`,
+      });
+    }
     
     navigate('/complaints');
   };
 
   const canProceedStep1 = content.trim().length > 10;
   const canProceedStep2 = category !== null;
-  const canProceedStep3 = selectedWilaya && selectedDaira && assignedMP;
+  const canProceedStep3 = selectedWilaya && selectedDaira && (isMunicipal ? assignedLocalDeputy : assignedMP);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-xl border-b border-border px-4 py-4">
         <div className="flex items-center gap-4">
           <button onClick={() => step > 1 ? setStep(step - 1) : navigate(-1)}>
@@ -78,7 +102,6 @@ export default function NewComplaint() {
           </div>
         </div>
         
-        {/* Progress Bar */}
         <div className="flex gap-2 mt-4">
           {[1, 2, 3].map((s) => (
             <div
@@ -93,7 +116,6 @@ export default function NewComplaint() {
       </header>
 
       <AnimatePresence mode="wait">
-        {/* Step 1: Content */}
         {step === 1 && (
           <motion.div
             key="step1"
@@ -159,14 +181,13 @@ export default function NewComplaint() {
           </motion.div>
         )}
 
-        {/* Step 2: Category */}
         {step === 2 && (
           <motion.div
             key="step2"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
-            className="p-4"
+            className="p-4 pb-32"
           >
             <h2 className="text-xl font-bold text-foreground mb-2">طبيعة المشكل</h2>
             <p className="text-sm text-muted-foreground mb-6">
@@ -179,14 +200,20 @@ export default function NewComplaint() {
                   key={cat.id}
                   onClick={() => setCategory(cat.id)}
                   className={cn(
-                    "p-4 rounded-2xl border-2 text-right transition-all duration-200",
+                    "p-3 rounded-2xl border-2 text-right transition-all duration-200",
                     category === cat.id
                       ? "border-primary bg-primary/10"
-                      : "border-border bg-card hover:border-primary/50"
+                      : "border-border bg-card hover:border-primary/50",
+                    cat.id === 'municipal' && "col-span-2 bg-secondary/5 border-secondary/30"
                   )}
                 >
-                  <span className="text-2xl block mb-2">{cat.icon}</span>
-                  <span className="font-medium text-foreground">{cat.label}</span>
+                  <span className="text-xl block mb-1">{cat.icon}</span>
+                  <span className="font-medium text-foreground text-sm">{cat.label}</span>
+                  {cat.id === 'municipal' && (
+                    <span className="text-xs text-secondary block mt-1">
+                      ← توجّه تلقائياً لنائب الجهة
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -205,7 +232,6 @@ export default function NewComplaint() {
           </motion.div>
         )}
 
-        {/* Step 3: Location */}
         {step === 3 && (
           <motion.div
             key="step3"
@@ -216,11 +242,26 @@ export default function NewComplaint() {
           >
             <h2 className="text-xl font-bold text-foreground mb-2">التوجيه الجغرافي</h2>
             <p className="text-sm text-muted-foreground mb-6">
-              حدد الولاية والدائرة لتوجيه شكوتك للنائب المختص
+              {isMunicipal 
+                ? 'حدد الولاية والدائرة لتوجيه شكوتك لنائب الجهة'
+                : 'حدد الولاية والدائرة لتوجيه شكوتك للنائب المختص'}
             </p>
 
+            {/* Category & Ministry Info */}
+            {category && (
+              <div className={cn(
+                "p-3 rounded-xl mb-4",
+                isMunicipal ? "bg-secondary/10 border border-secondary/30" : "bg-primary/10 border border-primary/30"
+              )}>
+                <p className="text-xs text-muted-foreground mb-1">نوع الشكوى</p>
+                <p className="font-bold text-foreground">{categoryLabels[category]}</p>
+                {!isMunicipal && ministry && (
+                  <p className="text-xs text-primary mt-1">← ستوجّه إلى: {ministry}</p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-4">
-              {/* Wilaya Selection */}
               <Sheet>
                 <SheetTrigger asChild>
                   <button className="w-full p-4 rounded-xl border-2 border-border bg-card text-right">
@@ -236,7 +277,7 @@ export default function NewComplaint() {
                   <SheetHeader>
                     <SheetTitle>اختر الولاية</SheetTitle>
                   </SheetHeader>
-                  <div className="grid grid-cols-2 gap-3 mt-6 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-3 mt-6 overflow-y-auto max-h-[45vh]">
                     {wilayas.map((wilaya) => (
                       <Button
                         key={wilaya.id}
@@ -255,7 +296,6 @@ export default function NewComplaint() {
                 </SheetContent>
               </Sheet>
 
-              {/* Daira Selection */}
               <Sheet>
                 <SheetTrigger asChild>
                   <button 
@@ -276,7 +316,7 @@ export default function NewComplaint() {
                   <SheetHeader>
                     <SheetTitle>اختر الدائرة</SheetTitle>
                   </SheetHeader>
-                  <div className="grid grid-cols-2 gap-3 mt-6 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-3 mt-6 overflow-y-auto max-h-[35vh]">
                     {filteredDairas.map((daira) => (
                       <Button
                         key={daira.id}
@@ -291,26 +331,57 @@ export default function NewComplaint() {
                 </SheetContent>
               </Sheet>
 
-              {/* Assigned MP */}
-              {assignedMP && (
+              {/* Assigned Local Deputy (for municipal) */}
+              {isMunicipal && assignedLocalDeputy && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 rounded-xl bg-secondary/10 border-2 border-secondary/30"
                 >
-                  <p className="text-xs text-secondary mb-2 font-medium">النائب المختص</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building2 className="w-4 h-4 text-secondary" />
+                    <p className="text-xs text-secondary font-medium">نائب الجهة المختص</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={assignedLocalDeputy.image}
+                      alt={assignedLocalDeputy.name}
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-secondary/30"
+                    />
+                    <div>
+                      <p className="font-bold text-foreground">{assignedLocalDeputy.name}</p>
+                      <p className="text-sm text-muted-foreground">{assignedLocalDeputy.daira} - {assignedLocalDeputy.wilaya}</p>
+                    </div>
+                    <Check className="w-6 h-6 text-secondary mr-auto" />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Assigned MP (for non-municipal) */}
+              {!isMunicipal && assignedMP && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-primary/10 border-2 border-primary/30"
+                >
+                  <p className="text-xs text-primary mb-2 font-medium">نائب الشعب المختص</p>
                   <div className="flex items-center gap-3">
                     <img
                       src={assignedMP.image}
                       alt={assignedMP.name}
-                      className="w-12 h-12 rounded-full object-cover ring-2 ring-secondary/30"
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/30"
                     />
                     <div>
                       <p className="font-bold text-foreground">{assignedMP.name}</p>
                       <p className="text-sm text-muted-foreground">{assignedMP.wilaya}</p>
                     </div>
-                    <Check className="w-6 h-6 text-secondary mr-auto" />
+                    <Check className="w-6 h-6 text-primary mr-auto" />
                   </div>
+                  {ministry && (
+                    <p className="text-xs text-primary/70 mt-3 bg-primary/5 p-2 rounded-lg">
+                      📋 سيتم توجيه الشكوى إلى: {ministry}
+                    </p>
+                  )}
                 </motion.div>
               )}
             </div>
