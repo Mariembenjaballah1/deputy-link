@@ -12,7 +12,7 @@ export default function Complaints() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-xl border-b border-border px-4 py-4">
         <div className="flex items-center gap-4">
-          <Link to="/">
+          <Link to="/citizen">
             <ArrowRight className="w-6 h-6 text-foreground" />
           </Link>
           <div className="flex-1">

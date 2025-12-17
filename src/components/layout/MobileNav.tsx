@@ -3,7 +3,7 @@ import { Home, User, FileText, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { path: '/', icon: Home, label: 'الرئيسية' },
+  { path: '/citizen', icon: Home, label: 'الرئيسية' },
   { path: '/complaints', icon: FileText, label: 'شكاواي' },
   { path: '/notifications', icon: Bell, label: 'الإشعارات' },
   { path: '/profile', icon: User, label: 'حسابي' },

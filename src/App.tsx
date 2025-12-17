@@ -18,6 +18,32 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Smart redirect based on user role
+function SmartRedirect() {
+  const { isAuthenticated, user } = useAuthStore();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  if (user) {
+    switch (user.role) {
+      case 'citizen':
+        return <Navigate to="/citizen" replace />;
+      case 'mp':
+        return <Navigate to="/mp-dashboard" replace />;
+      case 'local_deputy':
+        return <Navigate to="/local-deputy-dashboard" replace />;
+      case 'admin':
+        return <Navigate to="/admin" replace />;
+      default:
+        return <Navigate to="/auth" replace />;
+    }
+  }
+  
+  return <Navigate to="/auth" replace />;
+}
+
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user } = useAuthStore();
 
@@ -26,11 +52,19 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // Avoid redirect loops when a logged-in user hits a route not meant for their role
-    if (user.role === 'mp') return <Navigate to="/mp-dashboard" replace />;
-    if (user.role === 'local_deputy') return <Navigate to="/local-deputy-dashboard" replace />;
-    if (user.role === 'admin') return <Navigate to="/admin" replace />;
-    return <Navigate to="/" replace />;
+    // Redirect to appropriate dashboard based on role
+    switch (user.role) {
+      case 'mp':
+        return <Navigate to="/mp-dashboard" replace />;
+      case 'local_deputy':
+        return <Navigate to="/local-deputy-dashboard" replace />;
+      case 'admin':
+        return <Navigate to="/admin" replace />;
+      case 'citizen':
+        return <Navigate to="/citizen" replace />;
+      default:
+        return <Navigate to="/auth" replace />;
+    }
   }
 
   return <>{children}</>;
@@ -40,10 +74,18 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
   
   if (isAuthenticated && user) {
-    if (user.role === 'mp') return <Navigate to="/mp-dashboard" replace />;
-    if (user.role === 'local_deputy') return <Navigate to="/local-deputy-dashboard" replace />;
-    if (user.role === 'admin') return <Navigate to="/admin" replace />;
-    return <Navigate to="/" replace />;
+    switch (user.role) {
+      case 'mp':
+        return <Navigate to="/mp-dashboard" replace />;
+      case 'local_deputy':
+        return <Navigate to="/local-deputy-dashboard" replace />;
+      case 'admin':
+        return <Navigate to="/admin" replace />;
+      case 'citizen':
+        return <Navigate to="/citizen" replace />;
+      default:
+        return <Navigate to="/" replace />;
+    }
   }
   
   return <>{children}</>;
@@ -56,11 +98,14 @@ const App = () => (
       <Sonner position="top-center" />
       <BrowserRouter>
         <Routes>
+          {/* Smart Home - redirects based on role */}
+          <Route path="/" element={<SmartRedirect />} />
+          
           {/* Public Auth Route */}
           <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
           
           {/* Citizen Routes */}
-          <Route path="/" element={<ProtectedRoute allowedRoles={['citizen']}><Index /></ProtectedRoute>} />
+          <Route path="/citizen" element={<ProtectedRoute allowedRoles={['citizen']}><Index /></ProtectedRoute>} />
           <Route path="/mp/:id" element={<ProtectedRoute allowedRoles={['citizen']}><MPProfile /></ProtectedRoute>} />
           <Route path="/complaint/new" element={<ProtectedRoute allowedRoles={['citizen']}><NewComplaint /></ProtectedRoute>} />
           <Route path="/complaints" element={<ProtectedRoute allowedRoles={['citizen']}><Complaints /></ProtectedRoute>} />
