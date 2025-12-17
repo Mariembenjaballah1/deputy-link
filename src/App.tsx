@@ -20,15 +20,19 @@ const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user } = useAuthStore();
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
-  
+
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    // Avoid redirect loops when a logged-in user hits a route not meant for their role
+    if (user.role === 'mp') return <Navigate to="/mp-dashboard" replace />;
+    if (user.role === 'local_deputy') return <Navigate to="/local-deputy-dashboard" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
     return <Navigate to="/" replace />;
   }
-  
+
   return <>{children}</>;
 }
 
