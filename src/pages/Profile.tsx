@@ -30,7 +30,7 @@ export default function Profile() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="bg-gradient-to-b from-primary to-primary/80 pt-12 pb-16 px-4">
-        <Link to="/" className="inline-flex items-center gap-2 text-primary-foreground/80 mb-6">
+        <Link to="/citizen" className="inline-flex items-center gap-2 text-primary-foreground/80 mb-6">
           <ArrowRight className="w-5 h-5" />
           <span>رجوع</span>
         </Link>
