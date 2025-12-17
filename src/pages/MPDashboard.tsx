@@ -13,6 +13,7 @@ import { Complaint, categoryLabels, statusLabels, categoryMinistries } from '@/t
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -123,14 +124,106 @@ export default function MPDashboard() {
   };
 
   const handleDownloadPDF = () => {
-    const blob = new Blob([officialLetter], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `مراسلة_رسمية_${selectedComplaint?.id || ''}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('تم تحميل الملف');
+    if (!selectedComplaint) return;
+    
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const today = new Date().toLocaleDateString('ar-TN', { year: 'numeric', month: 'long', day: 'numeric' });
+    const ministry = categoryMinistries[selectedComplaint.category];
+    const wilaya = wilayas.find(w => w.id === selectedComplaint.wilayaId)?.name || '';
+    const daira = dairas.find(d => d.id === selectedComplaint.dairaId)?.name || '';
+    
+    // Set up RTL text
+    doc.setR2L(true);
+    
+    // Header - Republic of Tunisia
+    doc.setFontSize(16);
+    doc.text('الجمهورية التونسية', 105, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text('مجلس نواب الشعب', 105, 28, { align: 'center' });
+    
+    // Horizontal line
+    doc.setLineWidth(0.5);
+    doc.line(20, 35, 190, 35);
+    
+    // Date
+    doc.setFontSize(11);
+    doc.text(`التاريخ: ${today}`, 190, 45, { align: 'right' });
+    
+    // Recipient
+    doc.setFontSize(12);
+    doc.text('إلى', 190, 58, { align: 'right' });
+    doc.text('السيد/السيدة', 190, 65, { align: 'right' });
+    doc.setFontSize(13);
+    doc.text(`وزير ${ministry}`, 190, 73, { align: 'right' });
+    
+    // Subject
+    doc.setFontSize(12);
+    doc.text('الموضوع: إحالة شكوى مواطن', 190, 85, { align: 'right' });
+    
+    // Horizontal line
+    doc.line(20, 90, 190, 90);
+    
+    // Greeting
+    doc.setFontSize(11);
+    doc.text('حضرة السيد/السيدة الوزير،', 190, 100, { align: 'right' });
+    
+    // Body text
+    const bodyText = 'تبعا للمهام الدستورية الموكولة إلينا، وحرصًا على متابعة مشاغل المواطنين، يشرفني أن أتقدم إلى سيادتكم بهذه المراسلة قصد النظر في الشكوى التالية:';
+    const bodyLines = doc.splitTextToSize(bodyText, 170);
+    doc.text(bodyLines, 190, 110, { align: 'right' });
+    
+    // Complaint details
+    let yPos = 130;
+    doc.setFontSize(12);
+    doc.text(`موضوع الشكوى: ${categoryLabels[selectedComplaint.category]}`, 190, yPos, { align: 'right' });
+    yPos += 10;
+    doc.text(`الولاية: ${wilaya}`, 190, yPos, { align: 'right' });
+    yPos += 8;
+    doc.text(`البلدية: ${daira}`, 190, yPos, { align: 'right' });
+    yPos += 12;
+    
+    // Complaint text
+    doc.text('نص الشكوى:', 190, yPos, { align: 'right' });
+    yPos += 8;
+    doc.setFontSize(11);
+    const complaintLines = doc.splitTextToSize(selectedComplaint.content, 170);
+    doc.text(complaintLines, 190, yPos, { align: 'right' });
+    yPos += complaintLines.length * 6 + 15;
+    
+    // Horizontal line
+    doc.line(20, yPos, 190, yPos);
+    yPos += 10;
+    
+    // Closing
+    const closingText = 'وعليه، أرجو من سيادتكم التفضل باتخاذ ما ترونه مناسبًا في شأن هذه الوضعية، وإعلامنا بالإجراءات المتخذة في الإبان.';
+    const closingLines = doc.splitTextToSize(closingText, 170);
+    doc.text(closingLines, 190, yPos, { align: 'right' });
+    yPos += closingLines.length * 6 + 8;
+    
+    doc.text('وتفضلوا بقبول فائق عبارات الاحترام والتقدير.', 190, yPos, { align: 'right' });
+    yPos += 20;
+    
+    // Signature
+    doc.setFontSize(12);
+    doc.text('الإمضاء', 190, yPos, { align: 'right' });
+    yPos += 8;
+    doc.text(currentMP.name, 190, yPos, { align: 'right' });
+    yPos += 7;
+    doc.setFontSize(10);
+    doc.text(`نائب الشعب عن دائرة ${currentMP.wilaya}`, 190, yPos, { align: 'right' });
+    yPos += 6;
+    doc.text(`رقم الهاتف: ${currentMP.phone || '+216 XX XXX XXX'}`, 190, yPos, { align: 'right' });
+    yPos += 6;
+    doc.text(`البريد الإلكتروني: ${currentMP.email || 'mp@assembly.tn'}`, 190, yPos, { align: 'right' });
+    
+    // Save PDF
+    doc.save(`مراسلة_رسمية_${selectedComplaint.id}.pdf`);
+    toast.success('تم تحميل المراسلة بصيغة PDF');
   };
 
   const handleReply = () => {
@@ -452,7 +545,7 @@ export default function MPDashboard() {
                 </Button>
                 <Button variant="outline" className="flex-1 gap-2" onClick={handleDownloadPDF}>
                   <Download className="w-4 h-4" />
-                  تحميل
+                  تحميل PDF
                 </Button>
                 <Button 
                   variant="secondary" 
