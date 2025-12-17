@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import MPDashboard from "./pages/MPDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import LocalDeputyDashboard from "./pages/LocalDeputyDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   
   if (isAuthenticated && user) {
     if (user.role === 'mp') return <Navigate to="/mp-dashboard" replace />;
+    if (user.role === 'local_deputy') return <Navigate to="/local-deputy-dashboard" replace />;
     if (user.role === 'admin') return <Navigate to="/admin" replace />;
     return <Navigate to="/" replace />;
   }
@@ -63,6 +65,9 @@ const App = () => (
           
           {/* MP Routes */}
           <Route path="/mp-dashboard" element={<ProtectedRoute allowedRoles={['mp']}><MPDashboard /></ProtectedRoute>} />
+          
+          {/* Local Deputy Routes */}
+          <Route path="/local-deputy-dashboard" element={<ProtectedRoute allowedRoles={['local_deputy']}><LocalDeputyDashboard /></ProtectedRoute>} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
