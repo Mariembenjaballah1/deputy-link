@@ -7,10 +7,12 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
-import { mps, wilayas, dairas, allComplaints } from '@/data/mockData';
+import { mps as initialMps, wilayas, dairas, allComplaints } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { MPImportDialog } from '@/components/admin/MPImportDialog';
+import type { MP } from '@/types';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -25,6 +27,29 @@ export default function AdminDashboard() {
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [mps, setMps] = useState<MP[]>(initialMps);
+
+  const handleImportMPs = (importedMps: { name: string; daira: string; bloc: string; wilaya: string; profileUrl?: string }[]) => {
+    const newMps: MP[] = importedMps.map((mp, index) => {
+      const wilayaObj = wilayas.find(w => w.name === mp.wilaya);
+      const dairaObj = dairas.find(d => d.name === mp.daira);
+      
+      return {
+        id: `imported-${Date.now()}-${index}`,
+        name: mp.name,
+        image: `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.name)}&background=random`,
+        wilaya: mp.wilaya,
+        wilayaId: wilayaObj?.id || '',
+        dairaId: dairaObj?.id || '',
+        complaintsCount: 0,
+        responseRate: 0,
+        bio: `كتلة: ${mp.bloc}`,
+      };
+    });
+
+    setMps(prev => [...prev, ...newMps]);
+    toast.success(`تم إضافة ${newMps.length} نائب جديد`);
+  };
 
   const stats = {
     mps: mps.length,
@@ -216,10 +241,13 @@ export default function AdminDashboard() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="flex items-center justify-between mb-6">
                 <p className="text-muted-foreground">{mps.length} نائب مسجل</p>
-                <Button variant="default" className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  إضافة نائب
-                </Button>
+                <div className="flex gap-2">
+                  <MPImportDialog onImport={handleImportMPs} />
+                  <Button variant="default" className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    إضافة نائب
+                  </Button>
+                </div>
               </div>
               
               <div className="grid gap-4">
