@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, BarChart3, 
   Settings, LogOut, Menu, X, Bell, Filter,
-  Eye, Reply, Forward, XCircle, Clock, CheckCircle, FileText, Printer, Download
+  Eye, Reply, Forward, XCircle, Clock, CheckCircle, FileText, Printer, Download, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +13,7 @@ import { Complaint, categoryLabels, statusLabels, categoryMinistries } from '@/t
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 const sidebarItems = [
@@ -78,6 +79,7 @@ export default function MPDashboard() {
   const [showLetterModal, setShowLetterModal] = useState(false);
   const [officialLetter, setOfficialLetter] = useState('');
   const [replyText, setReplyText] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Filter complaints for MP (non-municipal)
   const mpComplaints = allComplaints.filter(c => c.assignedTo === 'mp');
@@ -123,107 +125,124 @@ export default function MPDashboard() {
     toast.success('جاري الطباعة...');
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!selectedComplaint) return;
     
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
+    setIsGeneratingPDF(true);
+    
     const today = new Date().toLocaleDateString('ar-TN', { year: 'numeric', month: 'long', day: 'numeric' });
     const ministry = categoryMinistries[selectedComplaint.category];
     const wilaya = wilayas.find(w => w.id === selectedComplaint.wilayaId)?.name || '';
     const daira = dairas.find(d => d.id === selectedComplaint.dairaId)?.name || '';
     
-    // Set up RTL text
-    doc.setR2L(true);
-    
-    // Header - Republic of Tunisia
-    doc.setFontSize(16);
-    doc.text('الجمهورية التونسية', 105, 20, { align: 'center' });
-    doc.setFontSize(14);
-    doc.text('مجلس نواب الشعب', 105, 28, { align: 'center' });
-    
-    // Horizontal line
-    doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
-    
-    // Date
-    doc.setFontSize(11);
-    doc.text(`التاريخ: ${today}`, 190, 45, { align: 'right' });
-    
-    // Recipient
-    doc.setFontSize(12);
-    doc.text('إلى', 190, 58, { align: 'right' });
-    doc.text('السيد/السيدة', 190, 65, { align: 'right' });
-    doc.setFontSize(13);
-    doc.text(`وزير ${ministry}`, 190, 73, { align: 'right' });
-    
-    // Subject
-    doc.setFontSize(12);
-    doc.text('الموضوع: إحالة شكوى مواطن', 190, 85, { align: 'right' });
-    
-    // Horizontal line
-    doc.line(20, 90, 190, 90);
-    
-    // Greeting
-    doc.setFontSize(11);
-    doc.text('حضرة السيد/السيدة الوزير،', 190, 100, { align: 'right' });
-    
-    // Body text
-    const bodyText = 'تبعا للمهام الدستورية الموكولة إلينا، وحرصًا على متابعة مشاغل المواطنين، يشرفني أن أتقدم إلى سيادتكم بهذه المراسلة قصد النظر في الشكوى التالية:';
-    const bodyLines = doc.splitTextToSize(bodyText, 170);
-    doc.text(bodyLines, 190, 110, { align: 'right' });
-    
-    // Complaint details
-    let yPos = 130;
-    doc.setFontSize(12);
-    doc.text(`موضوع الشكوى: ${categoryLabels[selectedComplaint.category]}`, 190, yPos, { align: 'right' });
-    yPos += 10;
-    doc.text(`الولاية: ${wilaya}`, 190, yPos, { align: 'right' });
-    yPos += 8;
-    doc.text(`البلدية: ${daira}`, 190, yPos, { align: 'right' });
-    yPos += 12;
-    
-    // Complaint text
-    doc.text('نص الشكوى:', 190, yPos, { align: 'right' });
-    yPos += 8;
-    doc.setFontSize(11);
-    const complaintLines = doc.splitTextToSize(selectedComplaint.content, 170);
-    doc.text(complaintLines, 190, yPos, { align: 'right' });
-    yPos += complaintLines.length * 6 + 15;
-    
-    // Horizontal line
-    doc.line(20, yPos, 190, yPos);
-    yPos += 10;
-    
-    // Closing
-    const closingText = 'وعليه، أرجو من سيادتكم التفضل باتخاذ ما ترونه مناسبًا في شأن هذه الوضعية، وإعلامنا بالإجراءات المتخذة في الإبان.';
-    const closingLines = doc.splitTextToSize(closingText, 170);
-    doc.text(closingLines, 190, yPos, { align: 'right' });
-    yPos += closingLines.length * 6 + 8;
-    
-    doc.text('وتفضلوا بقبول فائق عبارات الاحترام والتقدير.', 190, yPos, { align: 'right' });
-    yPos += 20;
-    
-    // Signature
-    doc.setFontSize(12);
-    doc.text('الإمضاء', 190, yPos, { align: 'right' });
-    yPos += 8;
-    doc.text(currentMP.name, 190, yPos, { align: 'right' });
-    yPos += 7;
-    doc.setFontSize(10);
-    doc.text(`نائب الشعب عن دائرة ${currentMP.wilaya}`, 190, yPos, { align: 'right' });
-    yPos += 6;
-    doc.text(`رقم الهاتف: ${currentMP.phone || '+216 XX XXX XXX'}`, 190, yPos, { align: 'right' });
-    yPos += 6;
-    doc.text(`البريد الإلكتروني: ${currentMP.email || 'mp@assembly.tn'}`, 190, yPos, { align: 'right' });
-    
-    // Save PDF
-    doc.save(`مراسلة_رسمية_${selectedComplaint.id}.pdf`);
-    toast.success('تم تحميل المراسلة بصيغة PDF');
+    // Create temporary div for Arabic PDF rendering
+    const tempDiv = document.createElement('div');
+    tempDiv.style.cssText = `
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 20mm;
+      background: white;
+      font-family: 'Tajawal', 'Arial', sans-serif;
+      direction: rtl;
+      text-align: right;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #000;
+    `;
+
+    tempDiv.innerHTML = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 22px; margin: 0; font-weight: bold;">الجمهورية التونسية</h1>
+        <h2 style="font-size: 18px; margin: 8px 0 0 0; font-weight: normal;">مجلس نواب الشعب</h2>
+      </div>
+      
+      <hr style="border: none; border-top: 2px solid #333; margin: 20px 0;" />
+      
+      <p style="margin-bottom: 20px;"><strong>التاريخ:</strong> ${today}</p>
+      
+      <div style="margin-bottom: 20px;">
+        <p style="margin: 5px 0;">إلى</p>
+        <p style="margin: 5px 0;">السيد/السيدة</p>
+        <p style="margin: 5px 0; font-weight: bold; font-size: 16px;">وزير ${ministry}</p>
+      </div>
+      
+      <p style="margin-bottom: 20px;"><strong>الموضوع:</strong> إحالة شكوى مواطن</p>
+      
+      <hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;" />
+      
+      <p style="margin-bottom: 15px;">حضرة السيد/السيدة الوزير،</p>
+      
+      <p style="margin-bottom: 20px; text-align: justify;">
+        تبعا للمهام الدستورية الموكولة إلينا، وحرصا على متابعة مشاغل المواطنين، يشرفني أن أتقدم إلى سيادتكم بهذه المراسلة قصد النظر في الشكوى التالية:
+      </p>
+      
+      <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="margin: 5px 0;"><strong>موضوع الشكوى:</strong> ${categoryLabels[selectedComplaint.category]}</p>
+        <p style="margin: 5px 0;"><strong>الولاية:</strong> ${wilaya}</p>
+        <p style="margin: 5px 0;"><strong>البلدية:</strong> ${daira}</p>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <p style="margin-bottom: 10px;"><strong>نص الشكوى:</strong></p>
+        <div style="background: #fafafa; padding: 15px; border-right: 4px solid #333; text-align: justify;">
+          ${selectedComplaint.content}
+        </div>
+      </div>
+      
+      <hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;" />
+      
+      <p style="margin-bottom: 15px; text-align: justify;">
+        وعليه، أرجو من سيادتكم التفضل باتخاذ ما ترونه مناسبا في شأن هذه الوضعية، وإعلامنا بالإجراءات المتخذة في الإبان.
+      </p>
+      
+      <p style="margin-bottom: 30px;">وتفضلوا بقبول فائق عبارات الاحترام والتقدير.</p>
+      
+      <hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;" />
+      
+      <div style="margin-top: 30px;">
+        <p style="margin: 5px 0; font-weight: bold;">الإمضاء</p>
+        <p style="margin: 5px 0; font-size: 16px; font-weight: bold;">${currentMP.name}</p>
+        <p style="margin: 5px 0;">نائب الشعب عن دائرة ${currentMP.wilaya}</p>
+        <p style="margin: 5px 0; font-size: 12px; color: #666;">هاتف: ${currentMP.phone || '+216 XX XXX XXX'}</p>
+        <p style="margin: 5px 0; font-size: 12px; color: #666;">بريد: ${currentMP.email || 'mp@assembly.tn'}</p>
+      </div>
+    `;
+
+    document.body.appendChild(tempDiv);
+
+    try {
+      await document.fonts.ready;
+      
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`مراسلة_رسمية_${selectedComplaint.id}.pdf`);
+      toast.success('تم تحميل المراسلة بصيغة PDF');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('خطأ في إنشاء الملف');
+    } finally {
+      document.body.removeChild(tempDiv);
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleReply = () => {
