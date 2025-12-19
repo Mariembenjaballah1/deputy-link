@@ -80,22 +80,36 @@ export default function MPDashboard() {
   const [officialLetter, setOfficialLetter] = useState('');
   const [replyText, setReplyText] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [complaints, setComplaints] = useState<Complaint[]>(allComplaints.filter(c => c.assignedTo === 'mp'));
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-  // Filter complaints for MP (non-municipal)
-  const mpComplaints = allComplaints.filter(c => c.assignedTo === 'mp');
   const currentMP = mps[0]; // Mock current MP
   
+  // Apply filters
+  const filteredComplaints = complaints.filter(c => {
+    if (categoryFilter !== 'all' && c.category !== categoryFilter) return false;
+    if (statusFilter !== 'all' && c.status !== statusFilter) return false;
+    return true;
+  });
+  
   const stats = {
-    total: mpComplaints.length,
-    pending: mpComplaints.filter(c => c.status === 'pending').length,
-    viewed: mpComplaints.filter(c => c.status === 'viewed').length,
-    replied: mpComplaints.filter(c => c.status === 'replied').length,
-    forwarded: mpComplaints.filter(c => c.status === 'forwarded').length,
+    total: complaints.length,
+    pending: complaints.filter(c => c.status === 'pending').length,
+    viewed: complaints.filter(c => c.status === 'viewed').length,
+    replied: complaints.filter(c => c.status === 'replied').length,
+    forwarded: complaints.filter(c => c.status === 'forwarded').length,
   };
 
   const handleStatusChange = (status: string) => {
-    toast.success(`تم تغيير الحالة إلى: ${statusLabels[status as keyof typeof statusLabels]}`);
-    setSelectedComplaint(null);
+    if (selectedComplaint) {
+      setComplaints(prev => prev.map(c => 
+        c.id === selectedComplaint.id ? { ...c, status: status as Complaint['status'] } : c
+      ));
+      setSelectedComplaint(prev => prev ? { ...prev, status: status as Complaint['status'] } : null);
+      toast.success(`تم تغيير الحالة إلى: ${statusLabels[status as keyof typeof statusLabels]}`);
+    }
   };
 
   const handleGenerateLetter = (complaint: Complaint) => {
@@ -246,7 +260,10 @@ export default function MPDashboard() {
   };
 
   const handleReply = () => {
-    if (replyText.trim()) {
+    if (replyText.trim() && selectedComplaint) {
+      setComplaints(prev => prev.map(c => 
+        c.id === selectedComplaint.id ? { ...c, status: 'replied', reply: replyText, repliedAt: new Date().toISOString() } : c
+      ));
       toast.success('تم إرسال الرد بنجاح');
       setReplyText('');
       setSelectedComplaint(null);
@@ -384,7 +401,7 @@ export default function MPDashboard() {
               {/* Recent Complaints */}
               <h3 className="text-lg font-bold text-foreground mb-4">الشكاوى الأخيرة</h3>
               <div className="space-y-3">
-                {mpComplaints.slice(0, 5).map((complaint) => (
+                {complaints.slice(0, 5).map((complaint) => (
                   <div 
                     key={complaint.id}
                     onClick={() => setSelectedComplaint(complaint)}
@@ -418,15 +435,92 @@ export default function MPDashboard() {
           {/* Complaints List */}
           {activeTab === 'complaints' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <div className="flex items-center gap-4 mb-6">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Filter className="w-4 h-4" />
-                  تصفية
-                </Button>
+              <div className="flex flex-wrap items-center gap-4 mb-6">
+                <div className="relative">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2"
+                    onClick={() => setShowFilterMenu(!showFilterMenu)}
+                  >
+                    <Filter className="w-4 h-4" />
+                    تصفية
+                    {(categoryFilter !== 'all' || statusFilter !== 'all') && (
+                      <span className="w-2 h-2 bg-primary rounded-full"></span>
+                    )}
+                  </Button>
+                  
+                  {showFilterMenu && (
+                    <div className="absolute top-full mt-2 right-0 bg-card border border-border rounded-xl shadow-lg p-4 z-50 min-w-[250px]">
+                      <div className="mb-4">
+                        <label className="text-sm font-medium text-foreground mb-2 block">التصنيف</label>
+                        <select 
+                          value={categoryFilter}
+                          onChange={(e) => setCategoryFilter(e.target.value)}
+                          className="w-full p-2 border border-border rounded-lg bg-background text-foreground"
+                        >
+                          <option value="all">الكل</option>
+                          {Object.entries(categoryLabels).filter(([key]) => key !== 'municipal').map(([key, label]) => (
+                            <option key={key} value={key}>{label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="mb-4">
+                        <label className="text-sm font-medium text-foreground mb-2 block">الحالة</label>
+                        <select 
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="w-full p-2 border border-border rounded-lg bg-background text-foreground"
+                        >
+                          <option value="all">الكل</option>
+                          {Object.entries(statusLabels).map(([key, label]) => (
+                            <option key={key} value={key}>{label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => {
+                            setCategoryFilter('all');
+                            setStatusFilter('all');
+                          }}
+                        >
+                          إعادة تعيين
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => setShowFilterMenu(false)}
+                        >
+                          تطبيق
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {categoryFilter !== 'all' && (
+                  <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
+                    {categoryLabels[categoryFilter as keyof typeof categoryLabels]}
+                  </span>
+                )}
+                {statusFilter !== 'all' && (
+                  <span className="text-xs bg-secondary/10 text-secondary px-3 py-1 rounded-full">
+                    {statusLabels[statusFilter as keyof typeof statusLabels]}
+                  </span>
+                )}
+                
+                <span className="text-sm text-muted-foreground mr-auto">
+                  {filteredComplaints.length} شكوى
+                </span>
               </div>
               
               <div className="space-y-3">
-                {mpComplaints.map((complaint) => (
+                {filteredComplaints.map((complaint) => (
                   <div 
                     key={complaint.id}
                     onClick={() => setSelectedComplaint(complaint)}
@@ -452,6 +546,13 @@ export default function MPDashboard() {
                     </div>
                   </div>
                 ))}
+                
+                {filteredComplaints.length === 0 && (
+                  <div className="text-center py-12">
+                    <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">لا توجد شكاوى تطابق الفلتر</p>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
