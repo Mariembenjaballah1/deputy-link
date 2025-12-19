@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, MapPin, MessageSquare, BarChart3, 
   Settings, LogOut, Menu, X, Plus, Edit, Trash2, Check, XCircle,
-  Bell, FileText, Shield
+  Bell, FileText, Shield, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
-import { mps as initialMps, wilayas, dairas, allComplaints } from '@/data/mockData';
+import { mps as mockMps, wilayas, dairas, allComplaints } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { MPImportDialog } from '@/components/admin/MPImportDialog';
 import type { MP } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -27,28 +28,107 @@ export default function AdminDashboard() {
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [mps, setMps] = useState<MP[]>(initialMps);
+  const [mps, setMps] = useState<MP[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleImportMPs = (importedMps: { name: string; daira: string; bloc: string; wilaya: string; profileUrl?: string }[]) => {
-    const newMps: MP[] = importedMps.map((mp, index) => {
-      const wilayaObj = wilayas.find(w => w.name === mp.wilaya);
-      const dairaObj = dairas.find(d => d.name === mp.daira);
+  // Load MPs from database on mount
+  useEffect(() => {
+    loadMPs();
+  }, []);
+
+  const loadMPs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('mps')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const formattedMps: MP[] = data.map(mp => ({
+          id: mp.id,
+          name: mp.name,
+          image: mp.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.name)}&background=random`,
+          wilaya: mp.wilaya,
+          wilayaId: mp.wilaya_id || '',
+          dairaId: mp.daira_id || '',
+          complaintsCount: mp.complaints_count || 0,
+          responseRate: mp.response_rate || 0,
+          email: mp.email || undefined,
+          phone: mp.phone || undefined,
+          bio: mp.bio || undefined,
+        }));
+        setMps(formattedMps);
+      } else {
+        // If no data in DB, use mock data as fallback
+        setMps(mockMps);
+      }
+    } catch (error) {
+      console.error('Error loading MPs:', error);
+      setMps(mockMps);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportMPs = async (importedMps: { name: string; daira: string; bloc: string; wilaya: string; profileUrl?: string }[]) => {
+    setSaving(true);
+    try {
+      const mpsToInsert = importedMps.map((mp) => {
+        const wilayaObj = wilayas.find(w => w.name === mp.wilaya);
+        const dairaObj = dairas.find(d => d.name === mp.daira);
+        
+        return {
+          name: mp.name,
+          image: `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.name)}&background=random`,
+          wilaya: mp.wilaya,
+          wilaya_id: wilayaObj?.id || null,
+          daira_id: dairaObj?.id || null,
+          daira: mp.daira,
+          bloc: mp.bloc,
+          complaints_count: 0,
+          response_rate: 0,
+          bio: `كتلة: ${mp.bloc}`,
+          profile_url: mp.profileUrl || null,
+        };
+      });
+
+      const { data, error } = await supabase
+        .from('mps')
+        .insert(mpsToInsert)
+        .select();
+
+      if (error) throw error;
+
+      toast.success(`تم إضافة ${importedMps.length} نائب جديد وحفظهم في قاعدة البيانات`);
       
-      return {
-        id: `imported-${Date.now()}-${index}`,
-        name: mp.name,
-        image: `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.name)}&background=random`,
-        wilaya: mp.wilaya,
-        wilayaId: wilayaObj?.id || '',
-        dairaId: dairaObj?.id || '',
-        complaintsCount: 0,
-        responseRate: 0,
-        bio: `كتلة: ${mp.bloc}`,
-      };
-    });
+      // Reload MPs from database
+      await loadMPs();
+    } catch (error) {
+      console.error('Error saving MPs:', error);
+      toast.error('خطأ في حفظ البيانات');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    setMps(prev => [...prev, ...newMps]);
-    toast.success(`تم إضافة ${newMps.length} نائب جديد`);
+  const handleDeleteMP = async (mpId: string) => {
+    try {
+      const { error } = await supabase
+        .from('mps')
+        .delete()
+        .eq('id', mpId);
+
+      if (error) throw error;
+
+      setMps(prev => prev.filter(mp => mp.id !== mpId));
+      toast.success('تم حذف النائب');
+    } catch (error) {
+      console.error('Error deleting MP:', error);
+      toast.error('خطأ في حذف النائب');
+    }
   };
 
   const stats = {
@@ -65,6 +145,14 @@ export default function AdminDashboard() {
   const handleRejectMP = (name: string) => {
     toast.error(`تم رفض النائب: ${name}`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -240,7 +328,10 @@ export default function AdminDashboard() {
           {activeTab === 'mps' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="flex items-center justify-between mb-6">
-                <p className="text-muted-foreground">{mps.length} نائب مسجل</p>
+                <p className="text-muted-foreground">
+                  {mps.length} نائب مسجل
+                  {saving && <Loader2 className="w-4 h-4 animate-spin inline mr-2" />}
+                </p>
                 <div className="flex gap-2">
                   <MPImportDialog onImport={handleImportMPs} />
                   <Button variant="default" className="gap-2">
@@ -270,7 +361,12 @@ export default function AdminDashboard() {
                       <Button variant="ghost" size="icon">
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-destructive"
+                        onClick={() => handleDeleteMP(mp.id)}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
