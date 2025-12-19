@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      mps: {
+        Row: {
+          bio: string | null
+          bloc: string | null
+          complaints_count: number | null
+          created_at: string
+          daira: string | null
+          daira_id: string | null
+          email: string | null
+          id: string
+          image: string | null
+          name: string
+          phone: string | null
+          profile_url: string | null
+          response_rate: number | null
+          updated_at: string
+          wilaya: string
+          wilaya_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          bloc?: string | null
+          complaints_count?: number | null
+          created_at?: string
+          daira?: string | null
+          daira_id?: string | null
+          email?: string | null
+          id?: string
+          image?: string | null
+          name: string
+          phone?: string | null
+          profile_url?: string | null
+          response_rate?: number | null
+          updated_at?: string
+          wilaya: string
+          wilaya_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          bloc?: string | null
+          complaints_count?: number | null
+          created_at?: string
+          daira?: string | null
+          daira_id?: string | null
+          email?: string | null
+          id?: string
+          image?: string | null
+          name?: string
+          phone?: string | null
+          profile_url?: string | null
+          response_rate?: number | null
+          updated_at?: string
+          wilaya?: string
+          wilaya_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
