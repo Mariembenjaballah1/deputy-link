@@ -5,11 +5,14 @@ export interface MP {
   wilaya: string;
   wilayaId: string;
   dairaId?: string;
+  daira?: string;
+  bloc?: string;
   complaintsCount: number;
   responseRate: number;
   email?: string;
   phone?: string;
   bio?: string;
+  profileUrl?: string;
 }
 
 export interface LocalDeputy {
