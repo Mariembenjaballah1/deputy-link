@@ -7,6 +7,7 @@ interface AuthStore extends AuthState {
   logout: () => void;
   setUser: (user: User) => void;
   updateWilaya: (wilayaId: string, dairaId?: string) => void;
+  updateProfile: (updates: Partial<Pick<User, 'name' | 'email' | 'bio' | 'image'>>) => void;
 }
 
 // Mock users for demo
@@ -41,6 +42,11 @@ export const useAuthStore = create<AuthStore>()(
       updateWilaya: (wilayaId: string, dairaId?: string) => {
         set((state) => ({
           user: state.user ? { ...state.user, wilayaId, dairaId } : null,
+        }));
+      },
+      updateProfile: (updates: Partial<Pick<User, 'name' | 'email' | 'bio' | 'image'>>) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updates } : null,
         }));
       },
     }),
