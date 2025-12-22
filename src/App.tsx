@@ -11,6 +11,7 @@ import NewComplaint from "./pages/NewComplaint";
 import Complaints from "./pages/Complaints";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import MPDashboard from "./pages/MPDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -112,6 +113,7 @@ const App = () => (
           <Route path="/complaints" element={<ProtectedRoute allowedRoles={['citizen']}><Complaints /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute allowedRoles={['citizen']}><Notifications /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute allowedRoles={['citizen']}><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute allowedRoles={['citizen']}><Settings /></ProtectedRoute>} />
           
           {/* MP Routes */}
           <Route path="/mp-dashboard" element={<ProtectedRoute allowedRoles={['mp']}><MPDashboard /></ProtectedRoute>} />

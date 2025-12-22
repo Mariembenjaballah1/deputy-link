@@ -56,7 +56,7 @@ export default function Profile() {
 
   const menuItems = [
     { icon: MapPin, label: 'تغيير الولاية', action: () => setShowWilayaDialog(true) },
-    { icon: Settings, label: 'الإعدادات', href: '#' },
+    { icon: Settings, label: 'الإعدادات', href: '/settings' },
     { icon: HelpCircle, label: 'المساعدة', href: '#' },
   ];
 
