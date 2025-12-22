@@ -1,16 +1,81 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, FileText, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ComplaintCard } from '@/components/complaint/ComplaintCard';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { motion } from 'framer-motion';
-import { Complaint } from '@/types';
+import { Complaint, ComplaintCategory, ComplaintStatus } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 
 export default function Complaints() {
-  // For now, complaints will be empty until we create a complaints table
-  const [complaints] = useState<Complaint[]>([]);
-  const [isLoading] = useState(false);
+  const { user } = useAuthStore();
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadComplaints();
+    
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('my-complaints')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'complaints'
+        },
+        () => {
+          loadComplaints();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const loadComplaints = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading complaints:', error);
+        setComplaints([]);
+      } else if (data) {
+        const formattedComplaints: Complaint[] = data.map(c => ({
+          id: c.id,
+          userId: c.user_id,
+          content: c.content,
+          images: c.images || [],
+          category: c.category as ComplaintCategory,
+          wilayaId: c.wilaya_id,
+          dairaId: c.daira_id,
+          mpId: c.mp_id || undefined,
+          localDeputyId: c.local_deputy_id || undefined,
+          assignedTo: c.assigned_to as 'mp' | 'local_deputy',
+          status: c.status as ComplaintStatus,
+          createdAt: c.created_at,
+          reply: c.reply || undefined,
+          repliedAt: c.replied_at || undefined,
+          forwardedTo: c.forwarded_to || undefined,
+          officialLetter: c.official_letter || undefined,
+        }));
+        setComplaints(formattedComplaints);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setComplaints([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
