@@ -4,7 +4,7 @@ import {
   LayoutDashboard, MessageSquare, BarChart3, 
   Settings, LogOut, Menu, X, Bell, AlertTriangle,
   Eye, Reply, XCircle, Clock, CheckCircle, Building2,
-  FileText, History, User, Loader2
+  FileText, History, User, Loader2, PieChart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,18 +14,19 @@ import { categoryLabels, statusLabels } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { StatsSection } from '@/components/dashboard/StatsSection';
 import { LocalDeputyProfileSettings } from '@/components/dashboard/LocalDeputyProfileSettings';
 import { ComplaintFilters } from '@/components/dashboard/ComplaintFilters';
 import { AuditTrail } from '@/components/dashboard/AuditTrail';
 import { ReplyTemplates } from '@/components/dashboard/ReplyTemplates';
+import { LocalDeputyReportsSection } from '@/components/dashboard/LocalDeputyReportsSection';
+import { CoordinationLog } from '@/components/dashboard/CoordinationLog';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
   { icon: MessageSquare, label: 'الشكاوى', id: 'complaints' },
-  { icon: BarChart3, label: 'الإحصائيات', id: 'stats' },
+  { icon: PieChart, label: 'التقارير', id: 'reports' },
   { icon: User, label: 'الملف الشخصي', id: 'profile' },
   { icon: Settings, label: 'الإعدادات', id: 'settings' },
 ];
@@ -70,6 +71,7 @@ export default function LocalDeputyDashboard() {
   const [internalNote, setInternalNote] = useState('');
   const [showAuditTrail, setShowAuditTrail] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showCoordination, setShowCoordination] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -518,9 +520,9 @@ export default function LocalDeputyDashboard() {
             </motion.div>
           )}
 
-          {/* Stats */}
-          {activeTab === 'stats' && (
-            <StatsSection stats={stats} type="local_deputy" />
+          {/* Reports */}
+          {activeTab === 'reports' && (
+            <LocalDeputyReportsSection />
           )}
 
           {/* Profile */}
@@ -699,6 +701,14 @@ export default function LocalDeputyDashboard() {
                   <XCircle className="w-4 h-4" />
                   خارج الاختصاص
                 </Button>
+                <Button 
+                  variant="outline" 
+                  className="gap-2 col-span-2"
+                  onClick={() => setShowCoordination(true)}
+                >
+                  <Building2 className="w-4 h-4" />
+                  التنسيق مع الجهات المحلية
+                </Button>
               </div>
             </div>
           </motion.div>
@@ -742,6 +752,27 @@ export default function LocalDeputyDashboard() {
                 </button>
               </div>
               <ReplyTemplates onSelectTemplate={handleSelectTemplate} mode="select" />
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Coordination Modal */}
+      {showCoordination && selectedComplaint && (
+        <div className="fixed inset-0 z-[60] bg-foreground/50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto"
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold">التنسيق مع الجهات المحلية</h3>
+                <button onClick={() => setShowCoordination(false)}>
+                  <X className="w-6 h-6 text-muted-foreground" />
+                </button>
+              </div>
+              <CoordinationLog complaintId={selectedComplaint.id} />
             </div>
           </motion.div>
         </div>
