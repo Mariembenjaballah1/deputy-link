@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore } from '@/store/authStore';
-import { allComplaints, wilayas, dairas, mps } from '@/data/mockData';
+import { wilayas, dairas } from '@/data/mockData';
 import { Complaint, categoryLabels, statusLabels, categoryMinistries } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -23,7 +23,7 @@ const sidebarItems = [
   { icon: Settings, label: 'الإعدادات', id: 'settings' },
 ];
 
-const generateOfficialLetter = (complaint: Complaint, mp: typeof mps[0]) => {
+const generateOfficialLetter = (complaint: Complaint, mp: { name: string; wilaya: string; phone?: string; email?: string }) => {
   const today = new Date().toLocaleDateString('ar-TN', { year: 'numeric', month: 'long', day: 'numeric' });
   const ministry = categoryMinistries[complaint.category];
   const wilaya = wilayas.find(w => w.id === complaint.wilayaId)?.name || '';
@@ -80,12 +80,18 @@ export default function MPDashboard() {
   const [officialLetter, setOfficialLetter] = useState('');
   const [replyText, setReplyText] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [complaints, setComplaints] = useState<Complaint[]>(allComplaints.filter(c => c.assignedTo === 'mp'));
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-  const currentMP = mps[0]; // Mock current MP
+  // Use user info as current MP
+  const currentMP = {
+    name: user?.name || 'نائب الشعب',
+    wilaya: wilayas.find(w => w.id === user?.wilayaId)?.name || '',
+    phone: '+216 XX XXX XXX',
+    email: user?.email || 'mp@assembly.tn',
+  };
   
   // Apply filters
   const filteredComplaints = complaints.filter(c => {

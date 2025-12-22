@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Camera, X, Check, Building2 } from 'lucide-react';
+import { ArrowRight, Camera, X, Check, Building2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-import { ComplaintCategory, categoryLabels, categoryMinistries, isMunicipalCategory } from '@/types';
-import { wilayas, dairas, mps, localDeputies } from '@/data/mockData';
+import { ComplaintCategory, categoryLabels, categoryMinistries, isMunicipalCategory, MP, LocalDeputy } from '@/types';
+import { wilayas, dairas } from '@/data/mockData';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const categories: { id: ComplaintCategory; label: string; icon: string }[] = [
   { id: 'municipal', label: 'بلدية', icon: '🏛️' },
@@ -42,6 +43,8 @@ export default function NewComplaint() {
   const [category, setCategory] = useState<ComplaintCategory | null>(null);
   const [selectedWilaya, setSelectedWilaya] = useState<string | null>(null);
   const [selectedDaira, setSelectedDaira] = useState<string | null>(null);
+  const [mps, setMps] = useState<MP[]>([]);
+  const [isLoadingMps, setIsLoadingMps] = useState(false);
 
   const filteredDairas = selectedWilaya 
     ? dairas.filter(d => d.wilayaId === selectedWilaya)
@@ -49,12 +52,62 @@ export default function NewComplaint() {
 
   const isMunicipal = category ? isMunicipalCategory(category) : false;
 
-  const assignedMP = selectedWilaya && !isMunicipal
-    ? mps.find(mp => mp.wilayaId === selectedWilaya)
+  // Load MPs from database when wilaya changes
+  useEffect(() => {
+    if (selectedWilaya && !isMunicipal) {
+      loadMPs();
+    }
+  }, [selectedWilaya, isMunicipal]);
+
+  const loadMPs = async () => {
+    setIsLoadingMps(true);
+    try {
+      const { data, error } = await supabase
+        .from('mps')
+        .select('*')
+        .eq('wilaya_id', selectedWilaya);
+
+      if (error) {
+        console.error('Error loading MPs:', error);
+        setMps([]);
+      } else if (data) {
+        const formattedMps: MP[] = data.map(mp => ({
+          id: mp.id,
+          name: mp.name,
+          image: mp.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.name)}&background=random`,
+          wilaya: mp.wilaya,
+          wilayaId: mp.wilaya_id || '',
+          dairaId: mp.daira_id || '',
+          complaintsCount: mp.complaints_count || 0,
+          responseRate: mp.response_rate || 0,
+        }));
+        setMps(formattedMps);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setMps([]);
+    } finally {
+      setIsLoadingMps(false);
+    }
+  };
+
+  const assignedMP = selectedWilaya && !isMunicipal && mps.length > 0
+    ? mps[0]
     : null;
 
-  const assignedLocalDeputy = selectedWilaya && selectedDaira && isMunicipal
-    ? localDeputies.find(ld => ld.wilayaId === selectedWilaya && ld.dairaId === selectedDaira)
+  // For local deputies, we don't have a table yet, so show a placeholder
+  const assignedLocalDeputy: LocalDeputy | null = selectedWilaya && selectedDaira && isMunicipal
+    ? {
+        id: 'placeholder',
+        name: 'نائب الجهة',
+        image: 'https://ui-avatars.com/api/?name=نائب&background=random',
+        wilaya: wilayas.find(w => w.id === selectedWilaya)?.name || '',
+        wilayaId: selectedWilaya,
+        dairaId: selectedDaira,
+        daira: dairas.find(d => d.id === selectedDaira)?.name || '',
+        complaintsCount: 0,
+        responseRate: 0,
+      }
     : null;
 
   const ministry = category && !isMunicipal ? categoryMinistries[category] : null;

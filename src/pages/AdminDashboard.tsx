@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
-import { mps as mockMps, wilayas, dairas, allComplaints } from '@/data/mockData';
+import { wilayas, dairas } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -61,13 +61,10 @@ export default function AdminDashboard() {
           bio: mp.bio || undefined,
         }));
         setMps(formattedMps);
-      } else {
-        // If no data in DB, use mock data as fallback
-        setMps(mockMps);
       }
     } catch (error) {
       console.error('Error loading MPs:', error);
-      setMps(mockMps);
+      setMps([]);
     } finally {
       setLoading(false);
     }
@@ -134,8 +131,8 @@ export default function AdminDashboard() {
   const stats = {
     mps: mps.length,
     wilayas: wilayas.length,
-    complaints: allComplaints.length,
-    pending: allComplaints.filter(c => c.status === 'pending').length,
+    complaints: 0,
+    pending: 0,
   };
 
   const handleApproveMP = (name: string) => {
@@ -446,27 +443,11 @@ export default function AdminDashboard() {
           {/* Complaints */}
           {activeTab === 'complaints' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <p className="text-muted-foreground mb-4">{allComplaints.length} شكوى في النظام</p>
-              <div className="space-y-3">
-                {allComplaints.map((complaint) => (
-                  <div key={complaint.id} className="bg-card rounded-xl p-4 border border-border">
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="text-xs text-muted-foreground">#{complaint.id}</span>
-                      <span className={cn(
-                        "text-xs px-2 py-1 rounded-full",
-                        complaint.status === 'pending' && "bg-amber-100 text-amber-700",
-                        complaint.status === 'viewed' && "bg-blue-100 text-blue-700",
-                        complaint.status === 'replied' && "bg-green-100 text-green-700",
-                      )}>
-                        {complaint.status}
-                      </span>
-                    </div>
-                    <p className="text-foreground line-clamp-2 mb-2">{complaint.content}</p>
-                    <p className="text-xs text-muted-foreground">
-                      النائب: {mps.find(m => m.id === complaint.mpId)?.name}
-                    </p>
-                  </div>
-                ))}
+              <p className="text-muted-foreground mb-4">0 شكوى في النظام</p>
+              <div className="text-center py-12">
+                <MessageSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">لا توجد شكاوى بعد</p>
+                <p className="text-sm text-muted-foreground mt-2">سيتم عرض الشكاوى هنا عند إضافتها</p>
               </div>
             </motion.div>
           )}

@@ -1,17 +1,17 @@
 import { Complaint, categoryLabels, statusLabels } from '@/types';
-import { mps } from '@/data/mockData';
-import { Clock, User, Tag } from 'lucide-react';
+import { Clock, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 interface ComplaintCardProps {
   complaint: Complaint;
   index: number;
+  mpName?: string;
+  mpImage?: string;
+  mpWilaya?: string;
 }
 
-export function ComplaintCard({ complaint, index }: ComplaintCardProps) {
-  const mp = mps.find(m => m.id === complaint.mpId);
-  
+export function ComplaintCard({ complaint, index, mpName, mpImage, mpWilaya }: ComplaintCardProps) {
   const statusStyles: Record<string, string> = {
     pending: 'bg-amber-100 text-amber-700 border-amber-200',
     viewed: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -54,16 +54,18 @@ export function ComplaintCard({ complaint, index }: ComplaintCardProps) {
         </span>
       </div>
 
-      {mp && (
+      {mpName && (
         <div className="flex items-center gap-3 pt-3 border-t border-border/50">
-          <img 
-            src={mp.image} 
-            alt={mp.name}
-            className="w-8 h-8 rounded-full object-cover"
-          />
+          {mpImage && (
+            <img 
+              src={mpImage} 
+              alt={mpName}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          )}
           <div className="flex-1">
-            <p className="text-xs font-medium text-foreground">{mp.name}</p>
-            <p className="text-xs text-muted-foreground">{mp.wilaya}</p>
+            <p className="text-xs font-medium text-foreground">{mpName}</p>
+            {mpWilaya && <p className="text-xs text-muted-foreground">{mpWilaya}</p>}
           </div>
           <span className="text-xs text-muted-foreground flex items-center gap-1">
             <Clock className="w-3 h-3" />

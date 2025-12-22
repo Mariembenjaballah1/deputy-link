@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore } from '@/store/authStore';
-import { allComplaints, wilayas, dairas } from '@/data/mockData';
+import { wilayas, dairas } from '@/data/mockData';
 import { Complaint, categoryLabels, statusLabels } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -27,11 +27,8 @@ export default function LocalDeputyDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [replyText, setReplyText] = useState('');
-
-  // Filter complaints for local deputy (only municipal complaints)
-  const deputyComplaints = allComplaints.filter(c => 
-    c.assignedTo === 'local_deputy' && c.category === 'municipal'
-  );
+  // Complaints will be loaded from database later - empty for now
+  const deputyComplaints: Complaint[] = [];
   
   const stats = {
     total: deputyComplaints.length,

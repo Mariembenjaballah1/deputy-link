@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, FileText, Plus } from 'lucide-react';
+import { ArrowRight, FileText, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ComplaintCard } from '@/components/complaint/ComplaintCard';
-import { userComplaints } from '@/data/mockData';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { motion } from 'framer-motion';
+import { Complaint } from '@/types';
 
 export default function Complaints() {
+  // For now, complaints will be empty until we create a complaints table
+  const [complaints] = useState<Complaint[]>([]);
+  const [isLoading] = useState(false);
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -17,7 +22,7 @@ export default function Complaints() {
           </Link>
           <div className="flex-1">
             <h1 className="text-lg font-bold text-foreground">شكاواي</h1>
-            <p className="text-xs text-muted-foreground">{userComplaints.length} شكوى</p>
+            <p className="text-xs text-muted-foreground">{complaints.length} شكوى</p>
           </div>
           <Link to="/complaint/new">
             <Button variant="default" size="sm" className="gap-2">
@@ -29,9 +34,13 @@ export default function Complaints() {
       </header>
 
       <main className="container py-4">
-        {userComplaints.length > 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : complaints.length > 0 ? (
           <div className="space-y-4">
-            {userComplaints.map((complaint, index) => (
+            {complaints.map((complaint, index) => (
               <ComplaintCard key={complaint.id} complaint={complaint} index={index} />
             ))}
           </div>
