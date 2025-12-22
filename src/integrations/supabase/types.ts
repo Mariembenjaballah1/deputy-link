@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      complaints: {
+        Row: {
+          assigned_to: string
+          category: string
+          content: string
+          created_at: string
+          daira_id: string
+          forwarded_to: string | null
+          id: string
+          images: string[] | null
+          local_deputy_id: string | null
+          mp_id: string | null
+          official_letter: string | null
+          replied_at: string | null
+          reply: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          user_phone: string | null
+          wilaya_id: string
+        }
+        Insert: {
+          assigned_to: string
+          category: string
+          content: string
+          created_at?: string
+          daira_id: string
+          forwarded_to?: string | null
+          id?: string
+          images?: string[] | null
+          local_deputy_id?: string | null
+          mp_id?: string | null
+          official_letter?: string | null
+          replied_at?: string | null
+          reply?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          user_phone?: string | null
+          wilaya_id: string
+        }
+        Update: {
+          assigned_to?: string
+          category?: string
+          content?: string
+          created_at?: string
+          daira_id?: string
+          forwarded_to?: string | null
+          id?: string
+          images?: string[] | null
+          local_deputy_id?: string | null
+          mp_id?: string | null
+          official_letter?: string | null
+          replied_at?: string | null
+          reply?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          user_phone?: string | null
+          wilaya_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_mp_id_fkey"
+            columns: ["mp_id"]
+            isOneToOne: false
+            referencedRelation: "mps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mps: {
         Row: {
           bio: string | null

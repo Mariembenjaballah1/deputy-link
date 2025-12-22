@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, BarChart3, 
@@ -9,12 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore } from '@/store/authStore';
 import { wilayas, dairas } from '@/data/mockData';
-import { Complaint, categoryLabels, statusLabels, categoryMinistries } from '@/types';
+import { Complaint, categoryLabels, statusLabels, categoryMinistries, ComplaintCategory, ComplaintStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { supabase } from '@/integrations/supabase/client';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -81,6 +82,7 @@ export default function MPDashboard() {
   const [replyText, setReplyText] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -91,6 +93,72 @@ export default function MPDashboard() {
     wilaya: wilayas.find(w => w.id === user?.wilayaId)?.name || '',
     phone: '+216 XX XXX XXX',
     email: user?.email || 'mp@assembly.tn',
+  };
+
+  // Load complaints from database
+  useEffect(() => {
+    loadComplaints();
+    
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('complaints-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'complaints',
+          filter: 'assigned_to=eq.mp'
+        },
+        () => {
+          loadComplaints();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const loadComplaints = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*')
+        .eq('assigned_to', 'mp')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading complaints:', error);
+        setComplaints([]);
+      } else if (data) {
+        const formattedComplaints: Complaint[] = data.map(c => ({
+          id: c.id,
+          userId: c.user_id,
+          content: c.content,
+          images: c.images || [],
+          category: c.category as ComplaintCategory,
+          wilayaId: c.wilaya_id,
+          dairaId: c.daira_id,
+          mpId: c.mp_id || undefined,
+          localDeputyId: c.local_deputy_id || undefined,
+          assignedTo: c.assigned_to as 'mp' | 'local_deputy',
+          status: c.status as ComplaintStatus,
+          createdAt: c.created_at,
+          reply: c.reply || undefined,
+          repliedAt: c.replied_at || undefined,
+          forwardedTo: c.forwarded_to || undefined,
+          officialLetter: c.official_letter || undefined,
+        }));
+        setComplaints(formattedComplaints);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setComplaints([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Apply filters
@@ -108,13 +176,104 @@ export default function MPDashboard() {
     forwarded: complaints.filter(c => c.status === 'forwarded').length,
   };
 
-  const handleStatusChange = (status: string) => {
+  const handleStatusChange = async (status: string) => {
     if (selectedComplaint) {
-      setComplaints(prev => prev.map(c => 
-        c.id === selectedComplaint.id ? { ...c, status: status as Complaint['status'] } : c
-      ));
-      setSelectedComplaint(prev => prev ? { ...prev, status: status as Complaint['status'] } : null);
-      toast.success(`تم تغيير الحالة إلى: ${statusLabels[status as keyof typeof statusLabels]}`);
+      try {
+        const { error } = await supabase
+          .from('complaints')
+          .update({ status })
+          .eq('id', selectedComplaint.id);
+
+        if (error) throw error;
+
+        setComplaints(prev => prev.map(c => 
+          c.id === selectedComplaint.id ? { ...c, status: status as Complaint['status'] } : c
+        ));
+        setSelectedComplaint(prev => prev ? { ...prev, status: status as Complaint['status'] } : null);
+        toast.success(`تم تغيير الحالة إلى: ${statusLabels[status as keyof typeof statusLabels]}`);
+      } catch (error) {
+        console.error('Error updating status:', error);
+        toast.error('خطأ في تحديث الحالة');
+      }
+    }
+  };
+
+  const handleReply = async () => {
+    if (selectedComplaint && replyText.trim()) {
+      try {
+        const { error } = await supabase
+          .from('complaints')
+          .update({ 
+            reply: replyText,
+            replied_at: new Date().toISOString(),
+            status: 'replied'
+          })
+          .eq('id', selectedComplaint.id);
+
+        if (error) throw error;
+
+        setComplaints(prev => prev.map(c => 
+          c.id === selectedComplaint.id 
+            ? { ...c, reply: replyText, repliedAt: new Date().toISOString(), status: 'replied' as ComplaintStatus } 
+            : c
+        ));
+        setSelectedComplaint(null);
+        setReplyText('');
+        toast.success('تم إرسال الرد بنجاح');
+      } catch (error) {
+        console.error('Error sending reply:', error);
+        toast.error('خطأ في إرسال الرد');
+      }
+    }
+  };
+
+  const handleForward = async (forwardTo: string) => {
+    if (selectedComplaint) {
+      try {
+        const { error } = await supabase
+          .from('complaints')
+          .update({ 
+            forwarded_to: forwardTo,
+            status: 'forwarded'
+          })
+          .eq('id', selectedComplaint.id);
+
+        if (error) throw error;
+
+        setComplaints(prev => prev.map(c => 
+          c.id === selectedComplaint.id 
+            ? { ...c, forwardedTo: forwardTo, status: 'forwarded' as ComplaintStatus } 
+            : c
+        ));
+        setSelectedComplaint(null);
+        toast.success(`تم تحويل الشكوى إلى: ${forwardTo}`);
+      } catch (error) {
+        console.error('Error forwarding complaint:', error);
+        toast.error('خطأ في تحويل الشكوى');
+      }
+    }
+  };
+
+  const handleSaveOfficialLetter = async () => {
+    if (selectedComplaint && officialLetter) {
+      try {
+        const { error } = await supabase
+          .from('complaints')
+          .update({ official_letter: officialLetter })
+          .eq('id', selectedComplaint.id);
+
+        if (error) throw error;
+
+        setComplaints(prev => prev.map(c => 
+          c.id === selectedComplaint.id 
+            ? { ...c, officialLetter } 
+            : c
+        ));
+        toast.success('تم حفظ المراسلة الرسمية');
+      } catch (error) {
+        console.error('Error saving letter:', error);
+        toast.error('خطأ في حفظ المراسلة');
+      }
     }
   };
 
@@ -265,22 +424,7 @@ export default function MPDashboard() {
     }
   };
 
-  const handleReply = () => {
-    if (replyText.trim() && selectedComplaint) {
-      setComplaints(prev => prev.map(c => 
-        c.id === selectedComplaint.id ? { ...c, status: 'replied', reply: replyText, repliedAt: new Date().toISOString() } : c
-      ));
-      toast.success('تم إرسال الرد بنجاح');
-      setReplyText('');
-      setSelectedComplaint(null);
-    }
-  };
-
-  const handleForward = () => {
-    if (selectedComplaint) {
-      handleGenerateLetter(selectedComplaint);
-    }
-  };
+  // Old handlers removed - using async versions above
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -626,7 +770,11 @@ export default function MPDashboard() {
                   <Reply className="w-4 h-4" />
                   إرسال الرد
                 </Button>
-                <Button variant="accent" className="gap-2 col-span-2" onClick={handleForward}>
+                <Button variant="accent" className="gap-2 col-span-2" onClick={() => {
+                  if (selectedComplaint) {
+                    handleGenerateLetter(selectedComplaint);
+                  }
+                }}>
                   <FileText className="w-4 h-4" />
                   إنشاء مراسلة للوزارة
                 </Button>

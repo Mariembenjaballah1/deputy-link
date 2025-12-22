@@ -122,20 +122,51 @@ export default function NewComplaint() {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
-    const complaintId = `C${Date.now().toString().slice(-6)}`;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!category || !selectedWilaya || !selectedDaira) return;
     
-    if (isMunicipal) {
-      toast.success('تم إرسال الشكوى إلى نائب الجهة', {
-        description: `رقم الشكوى: ${complaintId}`,
-      });
-    } else {
-      toast.success('تم إرسال الشكوى إلى نائب الشعب', {
-        description: `رقم الشكوى: ${complaintId} - سيتم توجيهها إلى ${ministry}`,
-      });
+    setIsSubmitting(true);
+    
+    try {
+      const complaintData = {
+        user_id: 'anonymous', // Would use auth user id in production
+        user_phone: '',
+        content,
+        images,
+        category,
+        wilaya_id: selectedWilaya,
+        daira_id: selectedDaira,
+        mp_id: assignedMP?.id || null,
+        local_deputy_id: isMunicipal ? 'local' : null,
+        assigned_to: isMunicipal ? 'local_deputy' : 'mp',
+        status: 'pending',
+      };
+
+      const { error } = await supabase
+        .from('complaints')
+        .insert(complaintData);
+
+      if (error) throw error;
+      
+      if (isMunicipal) {
+        toast.success('تم إرسال الشكوى إلى نائب الجهة', {
+          description: 'سيتم معالجة شكواك في أقرب وقت',
+        });
+      } else {
+        toast.success('تم إرسال الشكوى إلى نائب الشعب', {
+          description: `سيتم توجيهها إلى ${ministry}`,
+        });
+      }
+      
+      navigate('/complaints');
+    } catch (error) {
+      console.error('Error submitting complaint:', error);
+      toast.error('خطأ في إرسال الشكوى');
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    navigate('/complaints');
   };
 
   const canProceedStep1 = content.trim().length > 10;
@@ -443,11 +474,18 @@ export default function NewComplaint() {
               <Button
                 variant="hero"
                 size="xl"
-                className="w-full"
-                disabled={!canProceedStep3}
+                className="w-full gap-2"
+                disabled={!canProceedStep3 || isSubmitting}
                 onClick={handleSubmit}
               >
-                إرسال الشكوى
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    جاري الإرسال...
+                  </>
+                ) : (
+                  'إرسال الشكوى'
+                )}
               </Button>
             </div>
           </motion.div>
