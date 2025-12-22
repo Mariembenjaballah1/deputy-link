@@ -18,6 +18,7 @@ import jsPDF from 'jspdf';
 import { supabase } from '@/integrations/supabase/client';
 import { StatsSection } from '@/components/dashboard/StatsSection';
 import { SettingsSection } from '@/components/dashboard/SettingsSection';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -89,7 +90,11 @@ export default function MPDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-  // Use user info as current MP
+  // Realtime notifications for new complaints
+  useRealtimeNotifications({
+    assignedTo: 'mp',
+    onNewComplaint: () => loadComplaints(),
+  });
   const currentMP = {
     name: user?.name || 'نائب الشعب',
     wilaya: wilayas.find(w => w.id === user?.wilayaId)?.name || '',

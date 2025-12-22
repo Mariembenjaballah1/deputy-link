@@ -15,6 +15,7 @@ import { MPImportDialog } from '@/components/admin/MPImportDialog';
 import type { MP } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsSection } from '@/components/dashboard/SettingsSection';
+import { AdminComplaintsTable } from '@/components/admin/AdminComplaintsTable';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -443,14 +444,7 @@ export default function AdminDashboard() {
 
           {/* Complaints */}
           {activeTab === 'complaints' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <p className="text-muted-foreground mb-4">0 شكوى في النظام</p>
-              <div className="text-center py-12">
-                <MessageSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">لا توجد شكاوى بعد</p>
-                <p className="text-sm text-muted-foreground mt-2">سيتم عرض الشكاوى هنا عند إضافتها</p>
-              </div>
-            </motion.div>
+            <AdminComplaintsTable />
           )}
 
           {/* Reports */}

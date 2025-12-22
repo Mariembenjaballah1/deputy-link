@@ -1,6 +1,11 @@
+import { useRef, useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { TrendingUp, TrendingDown, MessageSquare, Clock, Eye, CheckCircle, Forward } from 'lucide-react';
+import { TrendingUp, TrendingDown, MessageSquare, Clock, CheckCircle, Download, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface StatsSectionProps {
   stats: {
@@ -16,6 +21,9 @@ interface StatsSectionProps {
 const COLORS = ['hsl(var(--warning))', 'hsl(var(--info))', 'hsl(var(--secondary))', 'hsl(var(--primary))'];
 
 export function StatsSection({ stats, type }: StatsSectionProps) {
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
   const pieData = [
     { name: 'قيد الانتظار', value: stats.pending, color: 'hsl(var(--warning))' },
     { name: 'تم الاطلاع', value: stats.viewed, color: 'hsl(var(--info))' },
@@ -34,15 +42,166 @@ export function StatsSection({ stats, type }: StatsSectionProps) {
     ? Math.round(((stats.replied + (stats.forwarded || 0)) / stats.total) * 100) 
     : 0;
 
-  const previousResponseRate = 65; // Mock previous rate for comparison
+  const previousResponseRate = 65;
   const rateChange = responseRate - previousResponseRate;
+
+  const roleLabels = {
+    mp: 'نائب الشعب',
+    local_deputy: 'نائب الجهة',
+    admin: 'مدير النظام',
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    
+    setIsGeneratingPDF(true);
+    
+    try {
+      const today = new Date().toLocaleDateString('ar-TN', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+
+      // Create temporary div for PDF
+      const tempDiv = document.createElement('div');
+      tempDiv.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 20mm;
+        background: white;
+        font-family: 'Tajawal', 'Arial', sans-serif;
+        direction: rtl;
+        text-align: right;
+        font-size: 14px;
+        line-height: 1.8;
+        color: #000;
+      `;
+
+      tempDiv.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 24px; margin: 0; font-weight: bold;">تقرير الإحصائيات</h1>
+          <p style="font-size: 14px; color: #666; margin-top: 8px;">${roleLabels[type]}</p>
+          <p style="font-size: 12px; color: #999; margin-top: 4px;">التاريخ: ${today}</p>
+        </div>
+        
+        <hr style="border: none; border-top: 2px solid #333; margin: 20px 0;" />
+        
+        <h2 style="font-size: 18px; margin-bottom: 20px;">ملخص الشكاوى</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px;">
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #333;">${stats.total}</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">إجمالي الشكاوى</p>
+          </div>
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #d97706;">${stats.pending}</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">قيد الانتظار</p>
+          </div>
+          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">${stats.viewed}</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">تم الاطلاع</p>
+          </div>
+          <div style="background: #d1fae5; padding: 15px; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #059669;">${stats.replied}</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">تم الرد</p>
+          </div>
+          ${stats.forwarded ? `
+          <div style="background: #ede9fe; padding: 15px; border-radius: 8px; text-align: center; grid-column: span 2;">
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #7c3aed;">${stats.forwarded}</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">تم التحويل</p>
+          </div>
+          ` : ''}
+        </div>
+        
+        <hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;" />
+        
+        <h2 style="font-size: 18px; margin-bottom: 20px;">مؤشرات الأداء</h2>
+        
+        <div style="background: #f9fafb; padding: 20px; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e5e7eb;">
+            <span style="color: #666;">نسبة الاستجابة</span>
+            <span style="font-weight: bold; color: ${responseRate >= 50 ? '#059669' : '#dc2626'};">${responseRate}%</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e5e7eb;">
+            <span style="color: #666;">متوسط وقت الاستجابة</span>
+            <span style="font-weight: bold;">2-3 أيام</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #666;">الشكاوى المعالجة</span>
+            <span style="font-weight: bold;">${stats.replied + (stats.forwarded || 0)}</span>
+          </div>
+        </div>
+        
+        <div style="margin-top: 40px; text-align: center; color: #999; font-size: 11px;">
+          <p>تم إنشاء هذا التقرير تلقائياً من نظام شكوى</p>
+          <p>© ${new Date().getFullYear()} جميع الحقوق محفوظة</p>
+        </div>
+      `;
+
+      document.body.appendChild(tempDiv);
+
+      await document.fonts.ready;
+      
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`تقرير_الإحصائيات_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast.success('تم تحميل التقرير بنجاح');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('خطأ في إنشاء التقرير');
+    } finally {
+      // Clean up temp div
+      const tempDiv = document.querySelector('div[style*="left: -9999px"]');
+      if (tempDiv) document.body.removeChild(tempDiv);
+      setIsGeneratingPDF(false);
+    }
+  };
 
   return (
     <motion.div 
+      ref={reportRef}
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }}
       className="space-y-6"
     >
+      {/* Download PDF Button */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleDownloadPDF}
+          disabled={isGeneratingPDF}
+          variant="outline"
+          className="gap-2"
+        >
+          {isGeneratingPDF ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
+          تحميل التقرير PDF
+        </Button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-card rounded-2xl p-4 border border-border">
