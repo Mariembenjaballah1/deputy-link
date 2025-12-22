@@ -6,6 +6,7 @@ interface AuthStore extends AuthState {
   login: (phone: string, role: UserRole) => void;
   logout: () => void;
   setUser: (user: User) => void;
+  updateWilaya: (wilayaId: string, dairaId?: string) => void;
 }
 
 // Mock users for demo
@@ -36,6 +37,11 @@ export const useAuthStore = create<AuthStore>()(
       },
       setUser: (user: User) => {
         set({ user, isAuthenticated: true });
+      },
+      updateWilaya: (wilayaId: string, dairaId?: string) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, wilayaId, dairaId } : null,
+        }));
       },
     }),
     {
