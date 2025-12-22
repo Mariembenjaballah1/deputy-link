@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import MPDashboard from "./pages/MPDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import LocalDeputyDashboard from "./pages/LocalDeputyDashboard";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -103,8 +104,9 @@ const App = () => (
           {/* Smart Home - redirects based on role */}
           <Route path="/" element={<SmartRedirect />} />
           
-          {/* Public Auth Route */}
+          {/* Public Routes */}
           <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+          <Route path="/install" element={<Install />} />
           
           {/* Citizen Routes */}
           <Route path="/citizen" element={<ProtectedRoute allowedRoles={['citizen']}><Index /></ProtectedRoute>} />
