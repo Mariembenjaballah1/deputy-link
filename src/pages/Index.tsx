@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { FloatingButton } from '@/components/layout/FloatingButton';
+import { InstallPrompt } from '@/components/layout/InstallPrompt';
 import { FilterTabs } from '@/components/home/FilterTabs';
 import { MPCard } from '@/components/home/MPCard';
 import { wilayas } from '@/data/mockData';
@@ -159,6 +160,7 @@ const Index = () => {
         </SheetContent>
       </Sheet>
 
+      <InstallPrompt />
       <FloatingButton />
       <MobileNav />
     </div>
