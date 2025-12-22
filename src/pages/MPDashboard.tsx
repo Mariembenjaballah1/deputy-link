@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { supabase } from '@/integrations/supabase/client';
+import { StatsSection } from '@/components/dashboard/StatsSection';
+import { SettingsSection } from '@/components/dashboard/SettingsSection';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -707,12 +709,14 @@ export default function MPDashboard() {
             </motion.div>
           )}
 
-          {/* Stats & Settings */}
-          {(activeTab === 'stats' || activeTab === 'settings') && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-              <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">قريباً</p>
-            </motion.div>
+          {/* Stats */}
+          {activeTab === 'stats' && (
+            <StatsSection stats={stats} type="mp" />
+          )}
+
+          {/* Settings */}
+          {activeTab === 'settings' && (
+            <SettingsSection type="mp" />
           )}
         </div>
       </main>
