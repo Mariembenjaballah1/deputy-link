@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { StatsSection } from '@/components/dashboard/StatsSection';
 import { SettingsSection } from '@/components/dashboard/SettingsSection';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -31,6 +32,11 @@ export default function LocalDeputyDashboard() {
   const [replyText, setReplyText] = useState('');
   // Complaints will be loaded from database later - empty for now
   const deputyComplaints: Complaint[] = [];
+
+  // Realtime notifications for new complaints
+  useRealtimeNotifications({
+    assignedTo: 'local_deputy',
+  });
   
   const stats = {
     total: deputyComplaints.length,
