@@ -13,6 +13,8 @@ import { Complaint, categoryLabels, statusLabels } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { StatsSection } from '@/components/dashboard/StatsSection';
+import { SettingsSection } from '@/components/dashboard/SettingsSection';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -249,18 +251,12 @@ export default function LocalDeputyDashboard() {
 
           {/* Stats */}
           {activeTab === 'stats' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-              <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">الإحصائيات قريباً</p>
-            </motion.div>
+            <StatsSection stats={stats} type="local_deputy" />
           )}
 
           {/* Settings */}
           {activeTab === 'settings' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-              <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">الإعدادات قريباً</p>
-            </motion.div>
+            <SettingsSection type="local_deputy" />
           )}
         </div>
       </main>

@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { MPImportDialog } from '@/components/admin/MPImportDialog';
 import type { MP } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { SettingsSection } from '@/components/dashboard/SettingsSection';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -452,12 +453,17 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
-          {/* Reports & Settings */}
-          {(activeTab === 'reports' || activeTab === 'settings') && (
+          {/* Reports */}
+          {activeTab === 'reports' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
               <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">قريباً</p>
+              <p className="text-muted-foreground">التقارير قريباً</p>
             </motion.div>
+          )}
+
+          {/* Settings */}
+          {activeTab === 'settings' && (
+            <SettingsSection type="admin" />
           )}
         </div>
       </main>
