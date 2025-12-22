@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      complaint_audit_log: {
+        Row: {
+          action: string
+          action_by: string
+          action_by_role: string | null
+          complaint_id: string
+          created_at: string
+          id: string
+          new_value: Json | null
+          notes: string | null
+          old_value: Json | null
+        }
+        Insert: {
+          action: string
+          action_by: string
+          action_by_role?: string | null
+          complaint_id: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          notes?: string | null
+          old_value?: Json | null
+        }
+        Update: {
+          action?: string
+          action_by?: string
+          action_by_role?: string | null
+          complaint_id?: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          notes?: string | null
+          old_value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_audit_log_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
         Row: {
           assigned_to: string
@@ -21,12 +65,17 @@ export type Database = {
           content: string
           created_at: string
           daira_id: string
+          forwarded_at: string | null
           forwarded_to: string | null
+          forwarded_to_deputy_id: string | null
+          forwarding_method: string | null
           id: string
           images: string[] | null
+          internal_notes: string | null
           local_deputy_id: string | null
           mp_id: string | null
           official_letter: string | null
+          priority: string | null
           replied_at: string | null
           reply: string | null
           status: string
@@ -41,12 +90,17 @@ export type Database = {
           content: string
           created_at?: string
           daira_id: string
+          forwarded_at?: string | null
           forwarded_to?: string | null
+          forwarded_to_deputy_id?: string | null
+          forwarding_method?: string | null
           id?: string
           images?: string[] | null
+          internal_notes?: string | null
           local_deputy_id?: string | null
           mp_id?: string | null
           official_letter?: string | null
+          priority?: string | null
           replied_at?: string | null
           reply?: string | null
           status?: string
@@ -61,12 +115,17 @@ export type Database = {
           content?: string
           created_at?: string
           daira_id?: string
+          forwarded_at?: string | null
           forwarded_to?: string | null
+          forwarded_to_deputy_id?: string | null
+          forwarding_method?: string | null
           id?: string
           images?: string[] | null
+          internal_notes?: string | null
           local_deputy_id?: string | null
           mp_id?: string | null
           official_letter?: string | null
+          priority?: string | null
           replied_at?: string | null
           reply?: string | null
           status?: string
@@ -77,6 +136,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "complaints_forwarded_to_deputy_id_fkey"
+            columns: ["forwarded_to_deputy_id"]
+            isOneToOne: false
+            referencedRelation: "local_deputies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "complaints_mp_id_fkey"
             columns: ["mp_id"]
             isOneToOne: false
@@ -84,6 +150,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      local_deputies: {
+        Row: {
+          bio: string | null
+          created_at: string
+          daira_id: string
+          email: string | null
+          id: string
+          image: string | null
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          updated_at: string
+          whatsapp_number: string | null
+          wilaya_id: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          daira_id: string
+          email?: string | null
+          id?: string
+          image?: string | null
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+          wilaya_id: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          daira_id?: string
+          email?: string | null
+          id?: string
+          image?: string | null
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+          wilaya_id?: string
+        }
+        Relationships: []
       }
       mps: {
         Row: {
@@ -139,6 +250,39 @@ export type Database = {
           updated_at?: string
           wilaya?: string
           wilaya_id?: string | null
+        }
+        Relationships: []
+      }
+      reply_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_default: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

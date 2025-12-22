@@ -19,6 +19,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { StatsSection } from '@/components/dashboard/StatsSection';
 import { SettingsSection } from '@/components/dashboard/SettingsSection';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { MPProfileSettings } from '@/components/dashboard/MPProfileSettings';
+import { ReplyTemplates } from '@/components/dashboard/ReplyTemplates';
+import { ForwardComplaintModal } from '@/components/dashboard/ForwardComplaintModal';
+import { AuditTrail } from '@/components/dashboard/AuditTrail';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -89,7 +93,9 @@ export default function MPDashboard() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
-
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showAuditTrail, setShowAuditTrail] = useState(false);
   // Realtime notifications for new complaints
   useRealtimeNotifications({
     assignedTo: 'mp',
@@ -721,7 +727,7 @@ export default function MPDashboard() {
 
           {/* Settings */}
           {activeTab === 'settings' && (
-            <SettingsSection type="mp" />
+            <MPProfileSettings />
           )}
         </div>
       </main>
@@ -761,7 +767,31 @@ export default function MPDashboard() {
 
               {/* Reply Section */}
               <div className="mb-4">
-                <label className="text-sm font-medium text-foreground mb-2 block">الرد على المواطن</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">الرد على المواطن</label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs gap-1"
+                    onClick={() => setShowTemplates(!showTemplates)}
+                  >
+                    <FileText className="w-3 h-3" />
+                    ردود جاهزة
+                  </Button>
+                </div>
+                
+                {showTemplates && (
+                  <div className="mb-3 p-3 bg-muted/50 rounded-lg">
+                    <ReplyTemplates 
+                      mode="select" 
+                      onSelectTemplate={(content) => {
+                        setReplyText(content);
+                        setShowTemplates(false);
+                      }} 
+                    />
+                  </div>
+                )}
+                
                 <Textarea
                   placeholder="اكتب ردك هنا..."
                   value={replyText}
@@ -779,18 +809,51 @@ export default function MPDashboard() {
                   <Reply className="w-4 h-4" />
                   إرسال الرد
                 </Button>
-                <Button variant="accent" className="gap-2 col-span-2" onClick={() => {
-                  if (selectedComplaint) {
-                    handleGenerateLetter(selectedComplaint);
-                  }
-                }}>
-                  <FileText className="w-4 h-4" />
-                  إنشاء مراسلة للوزارة
-                </Button>
+                
+                {/* Show forward to deputy for municipal complaints */}
+                {selectedComplaint.category === 'municipal' && (
+                  <Button 
+                    variant="secondary" 
+                    className="gap-2 col-span-2" 
+                    onClick={() => setShowForwardModal(true)}
+                  >
+                    <Forward className="w-4 h-4" />
+                    تحويل لنائب الجهة
+                  </Button>
+                )}
+                
+                {selectedComplaint.category !== 'municipal' && (
+                  <Button variant="accent" className="gap-2 col-span-2" onClick={() => {
+                    if (selectedComplaint) {
+                      handleGenerateLetter(selectedComplaint);
+                    }
+                  }}>
+                    <FileText className="w-4 h-4" />
+                    إنشاء مراسلة للوزارة
+                  </Button>
+                )}
+                
                 <Button variant="outline" className="gap-2 text-destructive col-span-2" onClick={() => handleStatusChange('out_of_scope')}>
                   <XCircle className="w-4 h-4" />
                   خارج الاختصاص
                 </Button>
+              </div>
+
+              {/* Audit Trail */}
+              <div className="mt-6 pt-4 border-t border-border">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full gap-2"
+                  onClick={() => setShowAuditTrail(!showAuditTrail)}
+                >
+                  {showAuditTrail ? 'إخفاء سجل الأحداث' : 'عرض سجل الأحداث'}
+                </Button>
+                {showAuditTrail && (
+                  <div className="mt-4">
+                    <AuditTrail complaintId={selectedComplaint.id} />
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -845,6 +908,19 @@ export default function MPDashboard() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {/* Forward to Deputy Modal */}
+      {showForwardModal && selectedComplaint && (
+        <ForwardComplaintModal
+          complaint={selectedComplaint}
+          mpName={currentMP.name}
+          onClose={() => setShowForwardModal(false)}
+          onForwarded={() => {
+            loadComplaints();
+            setSelectedComplaint(null);
+          }}
+        />
       )}
     </div>
   );
