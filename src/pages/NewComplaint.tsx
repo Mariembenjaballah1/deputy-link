@@ -1,16 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Camera, X, Check, Building2, Loader2 } from 'lucide-react';
+import { ArrowRight, Camera, X, Check, Building2, Loader2, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { ComplaintCategory, categoryLabels, categoryMinistries, isMunicipalCategory, MP, LocalDeputy } from '@/types';
 import { wilayas, dairas } from '@/data/mockData';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 const categories: { id: ComplaintCategory; label: string; icon: string }[] = [
   { id: 'municipal', label: 'بلدية', icon: '🏛️' },
@@ -37,9 +36,12 @@ const categories: { id: ComplaintCategory; label: string; icon: string }[] = [
 
 export default function NewComplaint() {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [category, setCategory] = useState<ComplaintCategory | null>(null);
   const [selectedWilaya, setSelectedWilaya] = useState<string | null>(null);
   const [selectedDaira, setSelectedDaira] = useState<string | null>(null);
@@ -112,9 +114,55 @@ export default function NewComplaint() {
 
   const ministry = category && !isMunicipal ? categoryMinistries[category] : null;
 
-  const handleImageUpload = () => {
-    if (images.length < 3) {
-      setImages([...images, `https://picsum.photos/200/200?random=${Date.now()}`]);
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    if (images.length >= 3) {
+      toast.error('الحد الأقصى 3 صور');
+      return;
+    }
+
+    const file = files[0];
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('يرجى اختيار صورة صالحة');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('حجم الصورة يجب أن لا يتجاوز 5 ميغابايت');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `complaint_${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const filePath = `complaints/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrl } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setImages(prev => [...prev, publicUrl.publicUrl]);
+      toast.success('تم رفع الصورة بنجاح');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('خطأ في رفع الصورة');
+    } finally {
+      setIsUploadingImage(false);
+      // Reset file inputs
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
     }
   };
 
@@ -240,15 +288,52 @@ export default function NewComplaint() {
                     </button>
                   </div>
                 ))}
-                {images.length < 3 && (
-                  <button
-                    onClick={handleImageUpload}
-                    className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                  >
-                    <Camera className="w-6 h-6" />
-                  </button>
+                
+                {images.length < 3 && !isUploadingImage && (
+                  <div className="flex gap-2">
+                    {/* Camera capture */}
+                    <button
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors gap-1"
+                    >
+                      <Camera className="w-5 h-5" />
+                      <span className="text-[10px]">تصوير</span>
+                    </button>
+                    
+                    {/* Gallery import */}
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors gap-1"
+                    >
+                      <ImagePlus className="w-5 h-5" />
+                      <span className="text-[10px]">معرض</span>
+                    </button>
+                  </div>
+                )}
+
+                {isUploadingImage && (
+                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-primary flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
                 )}
               </div>
+              
+              {/* Hidden file inputs */}
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
             </div>
 
             <div className="fixed bottom-0 right-0 left-0 p-4 bg-background border-t border-border">
