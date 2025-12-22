@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, User, MapPin, Phone, LogOut, ChevronLeft, Settings, HelpCircle, Check } from 'lucide-react';
+import { ArrowRight, User, MapPin, Phone, LogOut, ChevronLeft, Settings, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { motion } from 'framer-motion';
@@ -57,7 +57,6 @@ export default function Profile() {
   const menuItems = [
     { icon: MapPin, label: 'تغيير الولاية', action: () => setShowWilayaDialog(true) },
     { icon: Settings, label: 'الإعدادات', href: '/settings' },
-    { icon: HelpCircle, label: 'المساعدة', href: '#' },
   ];
 
   return (
