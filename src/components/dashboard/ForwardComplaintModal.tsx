@@ -116,6 +116,15 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
         notes,
       });
 
+      // Send notification to local deputy
+      await supabase.from('notifications').insert({
+        user_id: selectedDeputy.id,
+        user_type: 'local_deputy',
+        title: 'شكوى جديدة محوّلة إليك',
+        description: `تم تحويل شكوى جديدة إليك من النائب ${mpName} في تصنيف: ${categoryLabels[complaint.category]}`,
+        complaint_id: complaint.id,
+      });
+
       toast.success(`تم تحويل الشكوى إلى ${selectedDeputy.name}`);
       onForwarded();
       onClose();

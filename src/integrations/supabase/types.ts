@@ -330,6 +330,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          complaint_id: string | null
+          created_at: string
+          description: string
+          id: string
+          is_read: boolean
+          title: string
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          complaint_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          is_read?: boolean
+          title: string
+          user_id: string
+          user_type: string
+        }
+        Update: {
+          complaint_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_read?: boolean
+          title?: string
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_registrations: {
         Row: {
           created_at: string

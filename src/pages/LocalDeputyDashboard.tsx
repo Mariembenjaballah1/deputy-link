@@ -88,7 +88,9 @@ export default function LocalDeputyDashboard() {
 
   // Realtime notifications for new complaints
   useRealtimeNotifications({
-    assignedTo: 'local_deputy',
+    userId: user?.id || '',
+    userType: 'local_deputy',
+    onNewNotification: () => loadComplaints(),
   });
 
   useEffect(() => {
