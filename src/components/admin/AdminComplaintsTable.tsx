@@ -5,8 +5,7 @@ import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { wilayas, dairas } from '@/data/mockData';
-import { Complaint, categoryLabels, statusLabels, ComplaintCategory, ComplaintStatus } from '@/types';
+import { Complaint, categoryLabels, statusLabels, ComplaintCategory, ComplaintStatus, Wilaya, Daira } from '@/types';
 
 interface AdminComplaintsTableProps {
   onViewComplaint?: (complaint: Complaint) => void;
@@ -14,6 +13,8 @@ interface AdminComplaintsTableProps {
 
 export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTableProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [wilayas, setWilayas] = useState<Wilaya[]>([]);
+  const [dairas, setDairas] = useState<Daira[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [wilayaFilter, setWilayaFilter] = useState<string>('all');
@@ -22,7 +23,7 @@ export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTablePr
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   useEffect(() => {
-    loadComplaints();
+    loadData();
 
     // Subscribe to real-time updates
     const channel = supabase
@@ -44,6 +45,26 @@ export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTablePr
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    await Promise.all([loadComplaints(), loadLocations()]);
+    setIsLoading(false);
+  };
+
+  const loadLocations = async () => {
+    const [wilayasRes, dairasRes] = await Promise.all([
+      supabase.from('wilayas').select('*').order('code'),
+      supabase.from('dairas').select('*').order('name'),
+    ]);
+
+    if (wilayasRes.data) {
+      setWilayas(wilayasRes.data.map(w => ({ id: w.id, name: w.name, code: w.code })));
+    }
+    if (dairasRes.data) {
+      setDairas(dairasRes.data.map(d => ({ id: d.id, name: d.name, wilayaId: d.wilaya_id })));
+    }
+  };
 
   const loadComplaints = async () => {
     try {
@@ -79,8 +100,6 @@ export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTablePr
     } catch (error) {
       console.error('Error:', error);
       setComplaints([]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
