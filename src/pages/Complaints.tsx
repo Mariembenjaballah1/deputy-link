@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, FileText, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ComplaintCard } from '@/components/complaint/ComplaintCard';
+import { ComplaintDetailModal } from '@/components/complaint/ComplaintDetailModal';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { motion } from 'framer-motion';
 import { Complaint, ComplaintCategory, ComplaintStatus } from '@/types';
@@ -13,6 +14,7 @@ export default function Complaints() {
   const { user } = useAuthStore();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
 
   useEffect(() => {
     loadComplaints();
@@ -106,7 +108,9 @@ export default function Complaints() {
         ) : complaints.length > 0 ? (
           <div className="space-y-4">
             {complaints.map((complaint, index) => (
-              <ComplaintCard key={complaint.id} complaint={complaint} index={index} />
+              <div key={complaint.id} onClick={() => setSelectedComplaint(complaint)} className="cursor-pointer">
+                <ComplaintCard complaint={complaint} index={index} />
+              </div>
             ))}
           </div>
         ) : (
@@ -130,6 +134,15 @@ export default function Complaints() {
       </main>
 
       <MobileNav />
+
+      <ComplaintDetailModal
+        complaint={selectedComplaint}
+        isOpen={!!selectedComplaint}
+        onClose={() => setSelectedComplaint(null)}
+        onUpdate={loadComplaints}
+        canEdit={true}
+        canDelete={true}
+      />
     </div>
   );
 }
