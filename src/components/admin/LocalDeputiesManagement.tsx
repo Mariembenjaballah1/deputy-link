@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Loader2, Building2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, Building2, Search, Eye, Phone, Mail, MessageCircle, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
@@ -8,7 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLocations } from '@/hooks/useLocations';
 import { LocalDeputyFormModal } from './LocalDeputyFormModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface LocalDeputy {
   id: string;
@@ -31,6 +33,8 @@ export function LocalDeputiesManagement() {
   const [wilayaFilter, setWilayaFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDeputy, setEditingDeputy] = useState<LocalDeputy | null>(null);
+  const [selectedDeputy, setSelectedDeputy] = useState<LocalDeputy | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   useEffect(() => {
     loadDeputies();
@@ -78,6 +82,11 @@ export function LocalDeputiesManagement() {
   const handleAdd = () => {
     setEditingDeputy(null);
     setIsModalOpen(true);
+  };
+
+  const handleViewDetails = (deputy: LocalDeputy) => {
+    setSelectedDeputy(deputy);
+    setIsDetailModalOpen(true);
   };
 
   const filteredDeputies = deputies.filter(d => {
@@ -153,7 +162,10 @@ export function LocalDeputiesManagement() {
               </span>
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" onClick={() => handleEdit(deputy)}>
+              <Button variant="ghost" size="icon" onClick={() => handleViewDetails(deputy)} title="عرض التفاصيل">
+                <Eye className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => handleEdit(deputy)} title="تعديل">
                 <Edit className="w-4 h-4" />
               </Button>
               <AlertDialog>
@@ -198,6 +210,103 @@ export function LocalDeputiesManagement() {
         onSuccess={loadDeputies}
         editDeputy={editingDeputy}
       />
+
+      {/* Detail Modal */}
+      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>تفاصيل نائب الجهة</DialogTitle>
+          </DialogHeader>
+          {selectedDeputy && (
+            <div className="space-y-6">
+              {/* Header with image and name */}
+              <div className="flex items-center gap-4">
+                <img
+                  src={selectedDeputy.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedDeputy.name)}&background=random&size=128`}
+                  alt={selectedDeputy.name}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
+                />
+                <div>
+                  <h3 className="text-xl font-bold text-foreground">{selectedDeputy.name}</h3>
+                  <Badge variant={selectedDeputy.is_active ? "default" : "secondary"} className="mt-1">
+                    {selectedDeputy.is_active ? 'نشط' : 'غير نشط'}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <MapPin className="w-4 h-4" />
+                  <span className="font-medium">الموقع</span>
+                </div>
+                <p className="text-foreground">
+                  {getWilayaName(selectedDeputy.wilaya_id)} - {getDairaName(selectedDeputy.daira_id)}
+                </p>
+              </div>
+
+              {/* Contact Info */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground">معلومات الاتصال</h4>
+                
+                {selectedDeputy.phone && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <Phone className="w-4 h-4 text-primary" />
+                    <span className="text-foreground" dir="ltr">{selectedDeputy.phone}</span>
+                  </div>
+                )}
+                
+                {selectedDeputy.whatsapp_number && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <MessageCircle className="w-4 h-4 text-green-500" />
+                    <span className="text-foreground" dir="ltr">{selectedDeputy.whatsapp_number}</span>
+                  </div>
+                )}
+                
+                {selectedDeputy.email && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <Mail className="w-4 h-4 text-primary" />
+                    <span className="text-foreground">{selectedDeputy.email}</span>
+                  </div>
+                )}
+
+                {!selectedDeputy.phone && !selectedDeputy.whatsapp_number && !selectedDeputy.email && (
+                  <p className="text-muted-foreground text-sm">لا توجد معلومات اتصال</p>
+                )}
+              </div>
+
+              {/* Bio */}
+              {selectedDeputy.bio && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-foreground">نبذة</h4>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{selectedDeputy.bio}</p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-4 border-t border-border">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setIsDetailModalOpen(false);
+                    handleEdit(selectedDeputy);
+                  }}
+                >
+                  <Edit className="w-4 h-4 ml-2" />
+                  تعديل
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsDetailModalOpen(false)}
+                >
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
