@@ -110,7 +110,11 @@ export default function AdminDashboard() {
     try {
       const mpsToInsert = importedMps.map((mp) => {
         const wilayaObj = wilayas.find(w => w.name === mp.wilaya);
-        const dairaObj = dairas.find(d => d.name === mp.daira);
+        // Find daira that matches the name AND belongs to the same wilaya
+        const dairaObj = dairas.find(d => 
+          d.name === mp.daira && 
+          (wilayaObj ? d.wilayaId === wilayaObj.id : true)
+        ) || dairas.find(d => d.name === mp.daira);
         
         return {
           name: mp.name,
@@ -118,7 +122,7 @@ export default function AdminDashboard() {
           wilaya: mp.wilaya,
           wilaya_id: wilayaObj?.id || null,
           daira_id: dairaObj?.id || null,
-          daira: mp.daira,
+          daira: mp.daira || dairaObj?.name || null,
           bloc: mp.bloc,
           complaints_count: 0,
           response_rate: 0,
