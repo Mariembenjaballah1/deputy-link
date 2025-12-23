@@ -54,6 +54,13 @@ export interface Daira {
   wilayaId: string;
 }
 
+export interface Mutamadiya {
+  id: string;
+  name: string;
+  dairaId: string;
+  wilayaId: string;
+}
+
 export type ComplaintCategory = 
   | 'municipal'
   | 'health'

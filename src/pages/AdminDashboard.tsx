@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { MPImportDialog } from '@/components/admin/MPImportDialog';
 import { MPFormModal } from '@/components/admin/MPFormModal';
 import { LocalDeputiesManagement } from '@/components/admin/LocalDeputiesManagement';
+import { LocationsManagement } from '@/components/admin/LocationsManagement';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { MP } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -344,69 +345,7 @@ export default function AdminDashboard() {
 
           {/* Locations Management */}
           {activeTab === 'locations' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <div className="grid lg:grid-cols-2 gap-6">
-                {/* Wilayas */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-foreground">الولايات</h3>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Plus className="w-4 h-4" />
-                      إضافة
-                    </Button>
-                  </div>
-                  <div className="bg-card rounded-xl border border-border overflow-hidden">
-                    {wilayas.map((wilaya) => (
-                      <div key={wilaya.id} className="flex items-center justify-between p-4 border-b border-border last:border-0">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-muted-foreground">{wilaya.code}</span>
-                          <span className="font-medium">{wilaya.name}</span>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Dairas */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-foreground">المعتمديات</h3>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Plus className="w-4 h-4" />
-                      إضافة
-                    </Button>
-                  </div>
-                  <div className="bg-card rounded-xl border border-border overflow-hidden">
-                    {dairas.slice(0, 8).map((daira) => (
-                      <div key={daira.id} className="flex items-center justify-between p-4 border-b border-border last:border-0">
-                        <div>
-                          <span className="font-medium">{daira.name}</span>
-                          <span className="text-xs text-muted-foreground mr-2">
-                            ({wilayas.find(w => w.id === daira.wilayaId)?.name})
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+            <LocationsManagement />
           )}
 
           {/* Complaints */}
