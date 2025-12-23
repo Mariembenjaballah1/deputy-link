@@ -21,7 +21,7 @@ const roles: { id: UserRole; label: string; icon: typeof User; description: stri
 export default function Auth() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
-  const { wilayas, getDairasByWilaya } = useLocations();
+  const { wilayas, dairas, getDairasByWilaya } = useLocations();
   const [step, setStep] = useState<'role' | 'phone' | 'otp' | 'register' | 'pending'>('role');
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [phone, setPhone] = useState('');
