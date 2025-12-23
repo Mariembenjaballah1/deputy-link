@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, MapPin, MessageSquare, BarChart3, 
   Settings, LogOut, Menu, X, Plus, Edit, Trash2, Check, XCircle,
-  Bell, FileText, Shield, Loader2, Building2
+  Bell, FileText, Shield, Loader2, Building2, Eye, Phone, Mail, Globe, Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import { wilayas, dairas } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { MPImportDialog } from '@/components/admin/MPImportDialog';
@@ -46,6 +48,8 @@ export default function AdminDashboard() {
   const [localDeputiesCount, setLocalDeputiesCount] = useState(0);
   const [wilayasCount, setWilayasCount] = useState(0);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [selectedMP, setSelectedMP] = useState<MP | null>(null);
+  const [isMPDetailModalOpen, setIsMPDetailModalOpen] = useState(false);
 
   // Load data from database on mount
   useEffect(() => {
@@ -166,6 +170,11 @@ export default function AdminDashboard() {
       console.error('Error deleting MP:', error);
       toast.error('خطأ في حذف النائب');
     }
+  };
+
+  const handleViewMPDetails = (mp: MP) => {
+    setSelectedMP(mp);
+    setIsMPDetailModalOpen(true);
   };
 
   const stats = {
@@ -348,7 +357,10 @@ export default function AdminDashboard() {
                       <p className="text-xs text-muted-foreground">نسبة الرد</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => { setEditingMP(mp); setIsMPModalOpen(true); }}>
+                      <Button variant="ghost" size="icon" onClick={() => handleViewMPDetails(mp)} title="عرض التفاصيل">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => { setEditingMP(mp); setIsMPModalOpen(true); }} title="تعديل">
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button 
@@ -356,6 +368,7 @@ export default function AdminDashboard() {
                         size="icon" 
                         className="text-destructive"
                         onClick={() => handleDeleteMP(mp.id)}
+                        title="حذف"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -406,6 +419,105 @@ export default function AdminDashboard() {
         onClose={() => setSelectedComplaint(null)}
         onUpdate={() => {}}
       />
+
+      {/* MP Detail Modal */}
+      <Dialog open={isMPDetailModalOpen} onOpenChange={setIsMPDetailModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>تفاصيل النائب البرلماني</DialogTitle>
+          </DialogHeader>
+          {selectedMP && (
+            <div className="space-y-6">
+              {/* Header with image and name */}
+              <div className="flex items-center gap-4">
+                <img
+                  src={selectedMP.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedMP.name)}&background=random&size=128`}
+                  alt={selectedMP.name}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
+                />
+                <div>
+                  <h3 className="text-xl font-bold text-foreground">{selectedMP.name}</h3>
+                  <p className="text-muted-foreground">{selectedMP.wilaya}</p>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{selectedMP.complaintsCount}</p>
+                  <p className="text-sm text-muted-foreground">شكوى</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-secondary">{selectedMP.responseRate}%</p>
+                  <p className="text-sm text-muted-foreground">نسبة الرد</p>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <MapPin className="w-4 h-4" />
+                  <span className="font-medium">الموقع</span>
+                </div>
+                <p className="text-foreground">{selectedMP.wilaya}</p>
+              </div>
+
+              {/* Contact Info */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground">معلومات الاتصال</h4>
+                
+                {selectedMP.phone && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <Phone className="w-4 h-4 text-primary" />
+                    <span className="text-foreground" dir="ltr">{selectedMP.phone}</span>
+                  </div>
+                )}
+                
+                {selectedMP.email && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <Mail className="w-4 h-4 text-primary" />
+                    <span className="text-foreground">{selectedMP.email}</span>
+                  </div>
+                )}
+
+                {!selectedMP.phone && !selectedMP.email && (
+                  <p className="text-muted-foreground text-sm">لا توجد معلومات اتصال</p>
+                )}
+              </div>
+
+              {/* Bio */}
+              {selectedMP.bio && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-foreground">نبذة</h4>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{selectedMP.bio}</p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-4 border-t border-border">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setIsMPDetailModalOpen(false);
+                    setEditingMP(selectedMP);
+                    setIsMPModalOpen(true);
+                  }}
+                >
+                  <Edit className="w-4 h-4 ml-2" />
+                  تعديل
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsMPDetailModalOpen(false)}
+                >
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
