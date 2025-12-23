@@ -94,11 +94,14 @@ export default function AdminDashboard() {
           wilaya: mp.wilaya,
           wilayaId: mp.wilaya_id || '',
           dairaId: mp.daira_id || '',
+          daira: mp.daira || undefined,
+          bloc: mp.bloc || undefined,
           complaintsCount: mp.complaints_count || 0,
           responseRate: mp.response_rate || 0,
           email: mp.email || undefined,
           phone: mp.phone || undefined,
           bio: mp.bio || undefined,
+          profileUrl: mp.profile_url || undefined,
         }));
         setMps(formattedMps);
       }
@@ -427,39 +430,57 @@ export default function AdminDashboard() {
             <DialogTitle>تفاصيل النائب البرلماني</DialogTitle>
           </DialogHeader>
           {selectedMP && (
-            <div className="space-y-6">
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto">
               {/* Header with image and name */}
               <div className="flex items-center gap-4">
                 <img
                   src={selectedMP.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedMP.name)}&background=random&size=128`}
                   alt={selectedMP.name}
-                  className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-primary/20"
                 />
-                <div>
+                <div className="flex-1">
                   <h3 className="text-xl font-bold text-foreground">{selectedMP.name}</h3>
-                  <p className="text-muted-foreground">{selectedMP.wilaya}</p>
+                  {selectedMP.bloc && (
+                    <Badge variant="secondary" className="mt-1">
+                      <Briefcase className="w-3 h-3 ml-1" />
+                      {selectedMP.bloc}
+                    </Badge>
+                  )}
                 </div>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/50 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-foreground">{selectedMP.complaintsCount}</p>
+                <div className="bg-primary/10 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-primary">{selectedMP.complaintsCount}</p>
                   <p className="text-sm text-muted-foreground">شكوى</p>
                 </div>
-                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <div className="bg-secondary/10 rounded-lg p-4 text-center">
                   <p className="text-2xl font-bold text-secondary">{selectedMP.responseRate}%</p>
                   <p className="text-sm text-muted-foreground">نسبة الرد</p>
                 </div>
               </div>
 
               {/* Location */}
-              <div className="bg-muted/50 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span className="font-medium">الموقع</span>
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  الموقع الجغرافي
+                </h4>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">الولاية</p>
+                      <p className="font-medium text-foreground">{selectedMP.wilaya}</p>
+                    </div>
+                    {selectedMP.daira && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">الدائرة</p>
+                        <p className="font-medium text-foreground">{selectedMP.daira}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="text-foreground">{selectedMP.wilaya}</p>
               </div>
 
               {/* Contact Info */}
@@ -467,20 +488,27 @@ export default function AdminDashboard() {
                 <h4 className="font-semibold text-foreground">معلومات الاتصال</h4>
                 
                 {selectedMP.phone && (
-                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                  <a href={`tel:${selectedMP.phone}`} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
                     <Phone className="w-4 h-4 text-primary" />
                     <span className="text-foreground" dir="ltr">{selectedMP.phone}</span>
-                  </div>
+                  </a>
                 )}
                 
                 {selectedMP.email && (
-                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                  <a href={`mailto:${selectedMP.email}`} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
                     <Mail className="w-4 h-4 text-primary" />
                     <span className="text-foreground">{selectedMP.email}</span>
-                  </div>
+                  </a>
                 )}
 
-                {!selectedMP.phone && !selectedMP.email && (
+                {selectedMP.profileUrl && (
+                  <a href={selectedMP.profileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                    <Globe className="w-4 h-4 text-primary" />
+                    <span className="text-foreground truncate">الملف الشخصي الرسمي</span>
+                  </a>
+                )}
+
+                {!selectedMP.phone && !selectedMP.email && !selectedMP.profileUrl && (
                   <p className="text-muted-foreground text-sm">لا توجد معلومات اتصال</p>
                 )}
               </div>
@@ -489,12 +517,12 @@ export default function AdminDashboard() {
               {selectedMP.bio && (
                 <div className="space-y-2">
                   <h4 className="font-semibold text-foreground">نبذة</h4>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{selectedMP.bio}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed bg-muted/30 rounded-lg p-4">{selectedMP.bio}</p>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex gap-2 pt-4 border-t border-border">
+              <div className="flex gap-2 pt-4 border-t border-border sticky bottom-0 bg-background">
                 <Button 
                   variant="outline" 
                   className="flex-1"
