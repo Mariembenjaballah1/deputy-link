@@ -100,8 +100,9 @@ export default function MPDashboard() {
   const [showAuditTrail, setShowAuditTrail] = useState(false);
   // Realtime notifications for new complaints
   useRealtimeNotifications({
-    assignedTo: 'mp',
-    onNewComplaint: () => loadComplaints(),
+    userId: user?.id || '',
+    userType: 'mp',
+    onNewNotification: () => loadComplaints(),
   });
   const currentMP = {
     name: user?.name || 'نائب الشعب',
