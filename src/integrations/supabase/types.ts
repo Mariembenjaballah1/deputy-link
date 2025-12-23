@@ -207,6 +207,7 @@ export type Database = {
           email: string | null
           id: string
           image: string | null
+          is_active: boolean | null
           name: string
           phone: string | null
           profile_url: string | null
@@ -225,6 +226,7 @@ export type Database = {
           email?: string | null
           id?: string
           image?: string | null
+          is_active?: boolean | null
           name: string
           phone?: string | null
           profile_url?: string | null
@@ -243,6 +245,7 @@ export type Database = {
           email?: string | null
           id?: string
           image?: string | null
+          is_active?: boolean | null
           name?: string
           phone?: string | null
           profile_url?: string | null
@@ -250,6 +253,45 @@ export type Database = {
           updated_at?: string
           wilaya?: string
           wilaya_id?: string | null
+        }
+        Relationships: []
+      }
+      pending_registrations: {
+        Row: {
+          created_at: string
+          daira_id: string | null
+          id: string
+          name: string
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role: string
+          status: string
+          wilaya_id: string
+        }
+        Insert: {
+          created_at?: string
+          daira_id?: string | null
+          id?: string
+          name: string
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role: string
+          status?: string
+          wilaya_id: string
+        }
+        Update: {
+          created_at?: string
+          daira_id?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role?: string
+          status?: string
+          wilaya_id?: string
         }
         Relationships: []
       }
