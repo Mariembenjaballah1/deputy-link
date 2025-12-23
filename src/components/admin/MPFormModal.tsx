@@ -168,12 +168,24 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">الهاتف</label>
-              <Input
-                placeholder="+216..."
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                الهاتف (للدخول)
+                <span className="text-xs text-muted-foreground mr-1">8 أرقام</span>
+              </label>
+              <div className="flex gap-2" dir="ltr">
+                <div className="bg-muted rounded-lg px-3 py-2 text-muted-foreground text-sm">
+                  +216
+                </div>
+                <Input
+                  placeholder="00000000"
+                  value={formData.phone.replace('+216', '')}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+                    setFormData({ ...formData, phone: digits ? '+216' + digits : '' });
+                  }}
+                  className="flex-1"
+                />
+              </div>
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">البريد الإلكتروني</label>
