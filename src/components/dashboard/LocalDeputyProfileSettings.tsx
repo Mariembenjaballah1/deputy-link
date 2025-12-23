@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { useAuthStore } from '@/store/authStore';
 
 interface ProfileData {
@@ -25,6 +25,7 @@ interface ProfileData {
 
 export function LocalDeputyProfileSettings() {
   const { user } = useAuthStore();
+  const { wilayas, getDairasByWilaya } = useLocations();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -48,7 +49,7 @@ export function LocalDeputyProfileSettings() {
   });
 
   const [deputyId, setDeputyId] = useState<string | null>(null);
-  const filteredDairas = dairas.filter(d => d.wilayaId === profileData.wilaya_id);
+  const filteredDairas = getDairasByWilaya(profileData.wilaya_id);
 
   useEffect(() => {
     loadProfile();

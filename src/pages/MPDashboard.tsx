@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore } from '@/store/authStore';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { Complaint, categoryLabels, statusLabels, categoryMinistries, ComplaintCategory, ComplaintStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';

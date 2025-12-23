@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { Complaint, categoryLabels } from '@/types';
 
 interface LocalDeputy {
@@ -27,6 +27,7 @@ interface ForwardComplaintModalProps {
 }
 
 export function ForwardComplaintModal({ complaint, mpName, onClose, onForwarded }: ForwardComplaintModalProps) {
+  const { getWilayaName, getDairaName } = useLocations();
   const [deputies, setDeputies] = useState<LocalDeputy[]>([]);
   const [selectedDeputy, setSelectedDeputy] = useState<LocalDeputy | null>(null);
   // Forwarding is always via system
@@ -58,8 +59,8 @@ export function ForwardComplaintModal({ complaint, mpName, onClose, onForwarded 
   };
 
   const generateWhatsAppMessage = () => {
-    const wilaya = wilayas.find(w => w.id === complaint.wilayaId)?.name || '';
-    const daira = dairas.find(d => d.id === complaint.dairaId)?.name || '';
+    const wilaya = getWilayaName(complaint.wilayaId);
+    const daira = getDairaName(complaint.dairaId);
     
     return `*شكوى محوّلة من نائب الشعب*
 
@@ -161,7 +162,7 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
                 {categoryLabels[complaint.category]}
               </span>
               <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
-                {wilayas.find(w => w.id === complaint.wilayaId)?.name}
+                {getWilayaName(complaint.wilayaId)}
               </span>
             </div>
           </div>
@@ -202,7 +203,7 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
                     <div className="flex-1 text-right">
                       <p className="font-medium text-foreground">{deputy.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {dairas.find(d => d.id === deputy.daira_id)?.name}
+                        {getDairaName(deputy.daira_id)}
                       </p>
                     </div>
                     {deputy.whatsapp_number && (

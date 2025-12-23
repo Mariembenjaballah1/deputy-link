@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types/auth';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const roles: { id: UserRole; label: string; icon: typeof User; description: string }[] = [
@@ -21,6 +21,7 @@ const roles: { id: UserRole; label: string; icon: typeof User; description: stri
 export default function Auth() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const { wilayas, getDairasByWilaya } = useLocations();
   const [step, setStep] = useState<'role' | 'phone' | 'otp' | 'register' | 'pending'>('role');
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [phone, setPhone] = useState('');
@@ -34,7 +35,7 @@ export default function Auth() {
   const [selectedDaira, setSelectedDaira] = useState<string | null>(null);
 
   const filteredDairas = selectedWilaya 
-    ? dairas.filter(d => d.wilayaId === selectedWilaya)
+    ? getDairasByWilaya(selectedWilaya)
     : [];
 
   const handleRoleSelect = (role: UserRole) => {

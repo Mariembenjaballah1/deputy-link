@@ -14,7 +14,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
-import { wilayas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 
 interface ComplaintStats {
   total: number;
@@ -62,6 +62,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function AdminReportsSection() {
+  const { getWilayaName } = useLocations();
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
@@ -123,7 +124,7 @@ export function AdminReportsSection() {
         // Stats by wilaya
         const wilayaMap = new Map<string, WilayaStats>();
         complaints.forEach(c => {
-          const wilayaName = wilayas.find(w => w.id === c.wilaya_id)?.name || c.wilaya_id;
+          const wilayaName = getWilayaName(c.wilaya_id) || c.wilaya_id;
           const existing = wilayaMap.get(wilayaName) || { name: wilayaName, total: 0, pending: 0, replied: 0 };
           existing.total++;
           if (c.status === 'pending') existing.pending++;

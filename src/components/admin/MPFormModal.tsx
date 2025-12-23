@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import type { MP } from '@/types';
 
 interface MPFormModalProps {
@@ -17,6 +17,7 @@ interface MPFormModalProps {
 }
 
 export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalProps) {
+  const { wilayas, dairas, getDairasByWilaya } = useLocations();
   const [isSaving, setIsSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -64,7 +65,7 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
   }, [editMP, isOpen]);
 
   const filteredDairas = formData.wilayaId 
-    ? dairas.filter(d => d.wilayaId === formData.wilayaId)
+    ? getDairasByWilaya(formData.wilayaId)
     : [];
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { LocalDeputyFormModal } from './LocalDeputyFormModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ interface LocalDeputy {
 }
 
 export function LocalDeputiesManagement() {
+  const { wilayas, getWilayaName, getDairaName } = useLocations();
   const [deputies, setDeputies] = useState<LocalDeputy[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -140,7 +141,7 @@ export function LocalDeputiesManagement() {
             <div className="flex-1">
               <p className="font-bold text-foreground">{deputy.name}</p>
               <p className="text-sm text-muted-foreground">
-                {wilayas.find(w => w.id === deputy.wilaya_id)?.name} - {dairas.find(d => d.id === deputy.daira_id)?.name}
+                {getWilayaName(deputy.wilaya_id)} - {getDairaName(deputy.daira_id)}
               </p>
             </div>
             <div className="text-center">

@@ -5,7 +5,7 @@ import { FloatingButton } from '@/components/layout/FloatingButton';
 import { InstallPrompt } from '@/components/layout/InstallPrompt';
 import { FilterTabs } from '@/components/home/FilterTabs';
 import { MPCard } from '@/components/home/MPCard';
-import { wilayas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
@@ -14,6 +14,7 @@ import { Loader2, Search } from 'lucide-react';
 import { MP } from '@/types';
 
 const Index = () => {
+  const { wilayas } = useLocations();
   const [selectedWilaya, setSelectedWilaya] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [mpSearchQuery, setMpSearchQuery] = useState('');

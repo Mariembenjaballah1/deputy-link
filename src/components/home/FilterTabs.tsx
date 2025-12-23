@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { wilayas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { MapPin, Users, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ interface FilterTabsProps {
 }
 
 export function FilterTabs({ selectedWilaya, onWilayaChange, onShowMPs }: FilterTabsProps) {
+  const { wilayas } = useLocations();
   const [activeFilter, setActiveFilter] = useState<'all' | 'wilaya' | 'mps'>('all');
   const [isWilayaSheetOpen, setIsWilayaSheetOpen] = useState(false);
 
