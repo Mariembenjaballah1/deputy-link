@@ -42,12 +42,15 @@ export function LocalDeputyFormModal({ isOpen, onClose, onSuccess, editDeputy }:
 
   useEffect(() => {
     if (editDeputy) {
+      // Clean phone numbers - remove +216 if exists for display
+      const cleanPhone = editDeputy.phone?.replace('+216', '') || '';
+      const cleanWhatsapp = editDeputy.whatsapp_number?.replace('+216', '') || '';
       setFormData({
         name: editDeputy.name,
         wilayaId: editDeputy.wilaya_id || '',
         dairaId: editDeputy.daira_id || '',
-        phone: editDeputy.phone || '',
-        whatsappNumber: editDeputy.whatsapp_number || '',
+        phone: cleanPhone ? '+216' + cleanPhone : '',
+        whatsappNumber: cleanWhatsapp ? '+216' + cleanWhatsapp : '',
         email: editDeputy.email || '',
         bio: editDeputy.bio || '',
       });

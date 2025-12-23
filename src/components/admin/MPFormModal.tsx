@@ -30,12 +30,14 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
 
   useEffect(() => {
     if (editMP) {
+      // Clean phone number - remove +216 if exists for display
+      const cleanPhone = editMP.phone?.replace('+216', '') || '';
       setFormData({
         name: editMP.name,
         wilayaId: editMP.wilayaId || '',
         dairaId: editMP.dairaId || '',
         bloc: editMP.bloc || '',
-        phone: editMP.phone || '',
+        phone: cleanPhone ? '+216' + cleanPhone : '',
         email: editMP.email || '',
         bio: editMP.bio || '',
       });
