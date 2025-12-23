@@ -215,31 +215,36 @@ export default function MPDashboard() {
   };
 
   const handleReply = async () => {
-    if (selectedComplaint && replyText.trim()) {
-      try {
-        const { error } = await supabase
-          .from('complaints')
-          .update({ 
-            reply: replyText,
-            replied_at: new Date().toISOString(),
-            status: 'replied'
-          })
-          .eq('id', selectedComplaint.id);
+    if (!selectedComplaint) return;
+    
+    if (!replyText.trim()) {
+      toast.error('يرجى كتابة نص الرد أولاً');
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('complaints')
+        .update({ 
+          reply: replyText,
+          replied_at: new Date().toISOString(),
+          status: 'replied'
+        })
+        .eq('id', selectedComplaint.id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        setComplaints(prev => prev.map(c => 
-          c.id === selectedComplaint.id 
-            ? { ...c, reply: replyText, repliedAt: new Date().toISOString(), status: 'replied' as ComplaintStatus } 
-            : c
-        ));
-        setSelectedComplaint(null);
-        setReplyText('');
-        toast.success('تم إرسال الرد بنجاح');
-      } catch (error) {
-        console.error('Error sending reply:', error);
-        toast.error('خطأ في إرسال الرد');
-      }
+      setComplaints(prev => prev.map(c => 
+        c.id === selectedComplaint.id 
+          ? { ...c, reply: replyText, repliedAt: new Date().toISOString(), status: 'replied' as ComplaintStatus } 
+          : c
+      ));
+      setSelectedComplaint(null);
+      setReplyText('');
+      toast.success('تم إرسال الرد بنجاح');
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      toast.error('خطأ في إرسال الرد');
     }
   };
 
