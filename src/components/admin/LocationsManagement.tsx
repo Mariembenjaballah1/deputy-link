@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { invalidateLocationsCache } from '@/hooks/useLocations';
 
 // Static data for initial import
 import { wilayas as staticWilayas, dairas as staticDairas } from '@/data/mockData';
@@ -157,6 +158,7 @@ export function LocationsManagement() {
       if (mutamadiyatError) throw mutamadiyatError;
 
       toast.success('تم استيراد البيانات بنجاح');
+      invalidateLocationsCache();
       await loadAllData();
     } catch (error) {
       console.error('Error importing data:', error);
@@ -217,6 +219,7 @@ export function LocationsManagement() {
       setIsWilayaModalOpen(false);
       setEditingWilaya(null);
       setWilayaForm({ name: '', code: '' });
+      invalidateLocationsCache();
       await loadAllData();
     } catch (error) {
       console.error('Error saving wilaya:', error);
@@ -229,6 +232,7 @@ export function LocationsManagement() {
       const { error } = await supabase.from('wilayas').delete().eq('id', id);
       if (error) throw error;
       toast.success('تم حذف الولاية');
+      invalidateLocationsCache();
       await loadAllData();
     } catch (error) {
       console.error('Error deleting wilaya:', error);
@@ -261,6 +265,7 @@ export function LocationsManagement() {
       setIsDairaModalOpen(false);
       setEditingDaira(null);
       setDairaForm({ name: '', wilayaId: '' });
+      invalidateLocationsCache();
       await loadAllData();
     } catch (error) {
       console.error('Error saving daira:', error);
@@ -273,6 +278,7 @@ export function LocationsManagement() {
       const { error } = await supabase.from('dairas').delete().eq('id', id);
       if (error) throw error;
       toast.success('تم حذف الدائرة');
+      invalidateLocationsCache();
       await loadAllData();
     } catch (error) {
       console.error('Error deleting daira:', error);
@@ -313,6 +319,7 @@ export function LocationsManagement() {
       setIsMutamadiyaModalOpen(false);
       setEditingMutamadiya(null);
       setMutamadiyaForm({ name: '', wilayaId: '', dairaId: '' });
+      invalidateLocationsCache();
       await loadAllData();
     } catch (error) {
       console.error('Error saving mutamadiya:', error);
@@ -325,6 +332,7 @@ export function LocationsManagement() {
       const { error } = await supabase.from('mutamadiyat').delete().eq('id', id);
       if (error) throw error;
       toast.success('تم حذف المعتمدية');
+      invalidateLocationsCache();
       await loadAllData();
     } catch (error) {
       console.error('Error deleting mutamadiya:', error);
