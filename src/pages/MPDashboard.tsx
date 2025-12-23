@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, BarChart3, 
   Settings, LogOut, Menu, X, Bell, Filter,
-  Eye, Reply, Forward, XCircle, Clock, CheckCircle, FileText, Printer, Download, Loader2
+  Eye, Reply, Forward, XCircle, Clock, CheckCircle, FileText, Printer, Download, Loader2,
+  Inbox
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,6 +28,7 @@ import { AuditTrail } from '@/components/dashboard/AuditTrail';
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
   { icon: MessageSquare, label: 'الشكاوى', id: 'complaints' },
+  { icon: Inbox, label: 'خزانة المداخلات', id: 'cabinet' },
   { icon: BarChart3, label: 'الإحصائيات', id: 'stats' },
   { icon: Settings, label: 'الإعدادات', id: 'settings' },
 ];
@@ -187,6 +189,7 @@ export default function MPDashboard() {
     viewed: complaints.filter(c => c.status === 'viewed').length,
     replied: complaints.filter(c => c.status === 'replied').length,
     forwarded: complaints.filter(c => c.status === 'forwarded').length,
+    inCabinet: complaints.filter(c => c.status === 'in_cabinet').length,
   };
 
   const handleStatusChange = async (status: string) => {
@@ -720,6 +723,101 @@ export default function MPDashboard() {
             </motion.div>
           )}
 
+          {/* Cabinet - خزانة المداخلات */}
+          {activeTab === 'cabinet' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-6">
+                <p className="font-bold text-accent mb-1">📁 خزانة المداخلات</p>
+                <p className="text-sm text-muted-foreground">
+                  الشكاوى المحفوظة للمتابعة لاحقاً • يمكنك إنشاء مراسلات رسمية للوزارات من هنا
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-foreground">
+                  الشكاوى في الخزانة ({stats.inCabinet})
+                </h3>
+              </div>
+
+              {complaints.filter(c => c.status === 'in_cabinet').length === 0 ? (
+                <div className="bg-card rounded-xl p-8 border border-border text-center">
+                  <Inbox className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <p className="text-muted-foreground">لا توجد شكاوى في الخزانة</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    يمكنك إضافة شكاوى من قسم الشكاوى بالضغط على "إضافة للخزانة"
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {complaints.filter(c => c.status === 'in_cabinet').map((complaint) => (
+                    <div 
+                      key={complaint.id}
+                      className="bg-card rounded-xl p-4 border border-border"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-xs text-muted-foreground">#{complaint.id}</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent">
+                          في الخزانة
+                        </span>
+                      </div>
+                      <p className="text-foreground line-clamp-2 mb-3">{complaint.content}</p>
+                      <div className="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
+                        <span className="bg-primary/10 text-primary px-2 py-1 rounded">
+                          {categoryLabels[complaint.category]}
+                        </span>
+                        <span>← {categoryMinistries[complaint.category]}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          className="gap-1 flex-1"
+                          onClick={() => {
+                            setSelectedComplaint(complaint);
+                            handleGenerateLetter(complaint);
+                          }}
+                        >
+                          <FileText className="w-3 h-3" />
+                          إنشاء مراسلة
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-1 flex-1"
+                          onClick={() => setSelectedComplaint(complaint)}
+                        >
+                          <Eye className="w-3 h-3" />
+                          عرض التفاصيل
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-1"
+                          onClick={async () => {
+                            try {
+                              const { error } = await supabase
+                                .from('complaints')
+                                .update({ status: 'pending' })
+                                .eq('id', complaint.id);
+                              if (error) throw error;
+                              loadComplaints();
+                              toast.success('تم إرجاع الشكوى للقائمة الرئيسية');
+                            } catch (error) {
+                              toast.error('خطأ في تحديث الحالة');
+                            }
+                          }}
+                        >
+                          <XCircle className="w-3 h-3" />
+                          إزالة
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
           {/* Stats */}
           {activeTab === 'stats' && (
             <StatsSection stats={stats} type="mp" />
@@ -820,14 +918,14 @@ export default function MPDashboard() {
                   تحويل لنائب الجهة
                 </Button>
                 
-                {/* Forward to Ministry */}
-                <Button variant="accent" className="gap-2" onClick={() => {
-                  if (selectedComplaint) {
-                    handleGenerateLetter(selectedComplaint);
-                  }
-                }}>
-                  <FileText className="w-4 h-4" />
-                  خزانة المداخلات
+                {/* Add to Cabinet */}
+                <Button 
+                  variant="accent" 
+                  className="gap-2" 
+                  onClick={() => handleStatusChange('in_cabinet')}
+                >
+                  <Inbox className="w-4 h-4" />
+                  إضافة للخزانة
                 </Button>
                 
                 <Button variant="outline" className="gap-2 text-destructive col-span-2" onClick={() => handleStatusChange('out_of_scope')}>
