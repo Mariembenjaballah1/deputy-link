@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,10 @@ interface MPFormModalProps {
 
 export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     wilayaId: '',
@@ -26,11 +30,11 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
     phone: '',
     email: '',
     bio: '',
+    image: '',
   });
 
   useEffect(() => {
     if (editMP) {
-      // Clean phone number - remove +216 if exists for display
       const cleanPhone = editMP.phone?.replace('+216', '') || '';
       setFormData({
         name: editMP.name,
@@ -40,7 +44,9 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
         phone: cleanPhone ? '+216' + cleanPhone : '',
         email: editMP.email || '',
         bio: editMP.bio || '',
+        image: editMP.image || '',
       });
+      setImagePreview(editMP.image || null);
     } else {
       setFormData({
         name: '',
@@ -50,13 +56,70 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
         phone: '',
         email: '',
         bio: '',
+        image: '',
       });
+      setImagePreview(null);
     }
+    setImageFile(null);
   }, [editMP, isOpen]);
 
   const filteredDairas = formData.wilayaId 
     ? dairas.filter(d => d.wilayaId === formData.wilayaId)
     : [];
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setFormData({ ...formData, image: '' });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return formData.image || null;
+    
+    setIsUploading(true);
+    try {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `mp-${Date.now()}.${fileExt}`;
+      const filePath = `mps/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, imageFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('خطأ في رفع الصورة');
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
@@ -70,6 +133,7 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
 
     setIsSaving(true);
     try {
+      const imageUrl = await uploadImage();
       const wilaya = wilayas.find(w => w.id === formData.wilayaId);
       const daira = dairas.find(d => d.id === formData.dairaId);
 
@@ -83,7 +147,7 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
         phone: formData.phone || null,
         email: formData.email || null,
         bio: formData.bio || null,
-        image: editMP?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=random`,
+        image: imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=random`,
       };
 
       if (editMP) {
@@ -115,12 +179,64 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editMP ? 'تعديل بيانات النائب' : 'إضافة نائب جديد'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Photo Upload */}
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">الصورة</label>
+            <div className="flex items-center gap-4">
+              {imagePreview ? (
+                <div className="relative">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="w-20 h-20 rounded-full object-cover border-2 border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/80"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-border">
+                  <Upload className="w-6 h-6 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="mp-image-upload"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                  ) : (
+                    <Upload className="w-4 h-4 ml-2" />
+                  )}
+                  اختر صورة
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">PNG, JPG (أقصى حجم 5MB)</p>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">الاسم الكامل *</label>
             <Input
@@ -214,8 +330,8 @@ export function MPFormModal({ isOpen, onClose, onSuccess, editMP }: MPFormModalP
           <Button variant="ghost" onClick={onClose} disabled={isSaving}>
             إلغاء
           </Button>
-          <Button onClick={handleSubmit} disabled={isSaving}>
-            {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+          <Button onClick={handleSubmit} disabled={isSaving || isUploading}>
+            {(isSaving || isUploading) && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
             {editMP ? 'تحديث' : 'إضافة'}
           </Button>
         </DialogFooter>
