@@ -151,6 +151,38 @@ export type Database = {
           },
         ]
       }
+      dairas: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          wilaya_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          wilaya_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          wilaya_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dairas_wilaya_id_fkey"
+            columns: ["wilaya_id"]
+            isOneToOne: false
+            referencedRelation: "wilayas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       local_deputies: {
         Row: {
           bio: string | null
@@ -256,6 +288,48 @@ export type Database = {
         }
         Relationships: []
       }
+      mutamadiyat: {
+        Row: {
+          created_at: string
+          daira_id: string
+          id: string
+          name: string
+          updated_at: string
+          wilaya_id: string
+        }
+        Insert: {
+          created_at?: string
+          daira_id: string
+          id?: string
+          name: string
+          updated_at?: string
+          wilaya_id: string
+        }
+        Update: {
+          created_at?: string
+          daira_id?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          wilaya_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mutamadiyat_daira_id_fkey"
+            columns: ["daira_id"]
+            isOneToOne: false
+            referencedRelation: "dairas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mutamadiyat_wilaya_id_fkey"
+            columns: ["wilaya_id"]
+            isOneToOne: false
+            referencedRelation: "wilayas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_registrations: {
         Row: {
           created_at: string
@@ -324,6 +398,30 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wilayas: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
           updated_at?: string
         }
         Relationships: []
