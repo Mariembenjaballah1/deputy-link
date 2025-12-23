@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SettingsSection } from '@/components/dashboard/SettingsSection';
 import { AdminComplaintsTable } from '@/components/admin/AdminComplaintsTable';
 import { AdminReportsSection } from '@/components/admin/AdminReportsSection';
+import { PendingRegistrations } from '@/components/admin/PendingRegistrations';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
   const [mps, setMps] = useState<MP[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
 
   // Load MPs from database on mount
   useEffect(() => {
@@ -135,15 +137,7 @@ export default function AdminDashboard() {
     mps: mps.length,
     wilayas: wilayas.length,
     complaints: 0,
-    pending: 0,
-  };
-
-  const handleApproveMP = (name: string) => {
-    toast.success(`تم قبول النائب: ${name}`);
-  };
-
-  const handleRejectMP = (name: string) => {
-    toast.error(`تم رفض النائب: ${name}`);
+    pending: pendingCount,
   };
 
   if (loading) {
@@ -227,8 +221,13 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-bold text-foreground">
               {sidebarItems.find(i => i.id === activeTab)?.label}
             </h2>
-            <button className="relative">
+            <button className="relative" onClick={() => setActiveTab('dashboard')}>
               <Bell className="w-6 h-6 text-muted-foreground" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
             </button>
           </div>
         </header>
@@ -261,66 +260,16 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Pending MP Approvals */}
-              <h3 className="text-lg font-bold text-foreground mb-4">طلبات تسجيل النواب</h3>
-              <div className="bg-card rounded-xl border border-border overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="text-right p-4 font-medium text-muted-foreground">الاسم</th>
-                      <th className="text-right p-4 font-medium text-muted-foreground">الهاتف</th>
-                      <th className="text-right p-4 font-medium text-muted-foreground">الولاية</th>
-                      <th className="text-right p-4 font-medium text-muted-foreground">الحالة</th>
-                      <th className="text-right p-4 font-medium text-muted-foreground">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mps.slice(0, 3).map((mp, index) => (
-                      <tr key={mp.id} className="border-t border-border">
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <img src={mp.image} alt={mp.name} className="w-8 h-8 rounded-full" />
-                            <span className="font-medium">{mp.name}</span>
-                          </div>
-                        </td>
-                        <td className="p-4 text-muted-foreground">+216 XX XXX XXX</td>
-                        <td className="p-4">{mp.wilaya}</td>
-                        <td className="p-4">
-                          <span className={cn(
-                            "text-xs px-2 py-1 rounded-full",
-                            index === 0 ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"
-                          )}>
-                            {index === 0 ? 'قيد المراجعة' : 'مفعل'}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="text-secondary"
-                              onClick={() => handleApproveMP(mp.name)}
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="text-destructive"
-                              onClick={() => handleRejectMP(mp.name)}
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {/* Pending Registrations */}
+              <h3 className="text-lg font-bold text-foreground mb-4">
+                طلبات تسجيل النواب
+                {pendingCount > 0 && (
+                  <span className="mr-2 text-sm bg-destructive text-destructive-foreground px-2 py-0.5 rounded-full">
+                    {pendingCount}
+                  </span>
+                )}
+              </h3>
+              <PendingRegistrations onCountChange={setPendingCount} />
             </motion.div>
           )}
 
