@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Send, MessageSquare, Loader2, User, Phone, Building2 } from 'lucide-react';
+import { X, Send, Loader2, User, Phone, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
@@ -29,7 +29,7 @@ interface ForwardComplaintModalProps {
 export function ForwardComplaintModal({ complaint, mpName, onClose, onForwarded }: ForwardComplaintModalProps) {
   const [deputies, setDeputies] = useState<LocalDeputy[]>([]);
   const [selectedDeputy, setSelectedDeputy] = useState<LocalDeputy | null>(null);
-  const [forwardingMethod, setForwardingMethod] = useState<'system' | 'whatsapp'>('system');
+  // Forwarding is always via system
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isForwarding, setIsForwarding] = useState(false);
@@ -127,62 +127,6 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
     }
   };
 
-  const handleForwardViaWhatsApp = async () => {
-    if (!selectedDeputy) {
-      toast.error('يرجى اختيار نائب الجهة');
-      return;
-    }
-
-    const whatsappNumber = selectedDeputy.whatsapp_number || selectedDeputy.phone;
-    if (!whatsappNumber) {
-      toast.error('لا يوجد رقم WhatsApp لهذا النائب');
-      return;
-    }
-
-    setIsForwarding(true);
-    try {
-      // Record the forwarding
-      await supabase
-        .from('complaints')
-        .update({
-          forwarded_to_deputy_id: selectedDeputy.id,
-          forwarded_to: selectedDeputy.name,
-          forwarded_at: new Date().toISOString(),
-          forwarding_method: 'whatsapp',
-          status: 'forwarded',
-        })
-        .eq('id', complaint.id);
-
-      // Add audit log
-      await supabase.from('complaint_audit_log').insert({
-        complaint_id: complaint.id,
-        action: 'forwarded_via_whatsapp',
-        action_by: mpName,
-        action_by_role: 'mp',
-        new_value: { 
-          deputy_id: selectedDeputy.id, 
-          deputy_name: selectedDeputy.name,
-          method: 'whatsapp',
-          phone: whatsappNumber
-        },
-        notes,
-      });
-
-      // Open WhatsApp
-      const message = encodeURIComponent(generateWhatsAppMessage());
-      const cleanNumber = whatsappNumber.replace(/\D/g, '');
-      window.open(`https://wa.me/${cleanNumber}?text=${message}`, '_blank');
-
-      toast.success('تم فتح WhatsApp لإرسال الشكوى');
-      onForwarded();
-      onClose();
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('خطأ في تسجيل التحويل');
-    } finally {
-      setIsForwarding(false);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
@@ -272,28 +216,6 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
             />
           </div>
 
-          {/* Forwarding Method */}
-          <div className="mb-6">
-            <label className="text-sm font-medium text-foreground mb-3 block">طريقة التحويل</label>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant={forwardingMethod === 'system' ? 'default' : 'outline'}
-                className="gap-2"
-                onClick={() => setForwardingMethod('system')}
-              >
-                <Send className="w-4 h-4" />
-                داخل النظام
-              </Button>
-              <Button
-                variant={forwardingMethod === 'whatsapp' ? 'default' : 'outline'}
-                className="gap-2"
-                onClick={() => setForwardingMethod('whatsapp')}
-              >
-                <MessageSquare className="w-4 h-4" />
-                WhatsApp
-              </Button>
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3">
@@ -302,15 +224,13 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
             </Button>
             <Button 
               className="flex-1 gap-2"
-              onClick={forwardingMethod === 'system' ? handleForwardViaSystem : handleForwardViaWhatsApp}
+              onClick={handleForwardViaSystem}
               disabled={!selectedDeputy || isForwarding}
             >
               {isForwarding ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
-              ) : forwardingMethod === 'system' ? (
-                <Send className="w-4 h-4" />
               ) : (
-                <MessageSquare className="w-4 h-4" />
+                <Send className="w-4 h-4" />
               )}
               تحويل
             </Button>
