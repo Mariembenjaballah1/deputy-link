@@ -88,6 +88,7 @@ export type ComplaintStatus =
   | 'viewed'
   | 'replied'
   | 'forwarded'
+  | 'in_cabinet'
   | 'out_of_scope';
 
 export interface Ministry {
@@ -166,6 +167,7 @@ export const statusLabels: Record<ComplaintStatus, string> = {
   viewed: 'تم الاطلاع',
   replied: 'تم الرد',
   forwarded: 'تم التحويل',
+  in_cabinet: 'في الخزانة',
   out_of_scope: 'خارج الاختصاص',
 };
 
