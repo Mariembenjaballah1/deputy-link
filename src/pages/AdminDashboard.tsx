@@ -43,11 +43,34 @@ export default function AdminDashboard() {
   const [pendingCount, setPendingCount] = useState(0);
   const [isMPModalOpen, setIsMPModalOpen] = useState(false);
   const [editingMP, setEditingMP] = useState<MP | null>(null);
+  const [localDeputiesCount, setLocalDeputiesCount] = useState(0);
+  const [wilayasCount, setWilayasCount] = useState(0);
 
-  // Load MPs from database on mount
+  // Load data from database on mount
   useEffect(() => {
     loadMPs();
+    loadCounts();
   }, []);
+
+  const loadCounts = async () => {
+    try {
+      // Load local deputies count
+      const { count: deputiesCount } = await supabase
+        .from('local_deputies')
+        .select('*', { count: 'exact', head: true });
+      
+      setLocalDeputiesCount(deputiesCount || 0);
+
+      // Load wilayas count from database
+      const { count: wilayasDbCount } = await supabase
+        .from('wilayas')
+        .select('*', { count: 'exact', head: true });
+      
+      setWilayasCount(wilayasDbCount || 0);
+    } catch (error) {
+      console.error('Error loading counts:', error);
+    }
+  };
 
   const loadMPs = async () => {
     try {
@@ -142,7 +165,8 @@ export default function AdminDashboard() {
 
   const stats = {
     mps: mps.length,
-    wilayas: wilayas.length,
+    localDeputies: localDeputiesCount,
+    wilayas: wilayasCount,
     complaints: 0,
     pending: pendingCount,
   };
@@ -244,11 +268,16 @@ export default function AdminDashboard() {
           {activeTab === 'dashboard' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {/* Stats Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <div className="bg-card rounded-2xl p-4 border border-border">
                   <Users className="w-8 h-8 text-primary mb-2" />
                   <p className="text-2xl font-bold text-foreground">{stats.mps}</p>
                   <p className="text-sm text-muted-foreground">النواب</p>
+                </div>
+                <div className="bg-card rounded-2xl p-4 border border-border">
+                  <Building2 className="w-8 h-8 text-accent mb-2" />
+                  <p className="text-2xl font-bold text-foreground">{stats.localDeputies}</p>
+                  <p className="text-sm text-muted-foreground">نواب الجهات</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border">
                   <MapPin className="w-8 h-8 text-secondary mb-2" />
@@ -256,12 +285,12 @@ export default function AdminDashboard() {
                   <p className="text-sm text-muted-foreground">الولايات</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border">
-                  <MessageSquare className="w-8 h-8 text-accent mb-2" />
+                  <MessageSquare className="w-8 h-8 text-warning mb-2" />
                   <p className="text-2xl font-bold text-foreground">{stats.complaints}</p>
                   <p className="text-sm text-muted-foreground">الشكاوى</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border">
-                  <FileText className="w-8 h-8 text-warning mb-2" />
+                  <FileText className="w-8 h-8 text-destructive mb-2" />
                   <p className="text-2xl font-bold text-foreground">{stats.pending}</p>
                   <p className="text-sm text-muted-foreground">قيد الانتظار</p>
                 </div>
