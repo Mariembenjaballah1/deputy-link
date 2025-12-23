@@ -406,15 +406,15 @@ export function LocationsManagement() {
           </div>
           
           {(activeTab === 'dairas' || activeTab === 'mutamadiyat') && (
-            <Select value={selectedWilaya} onValueChange={(value) => {
-              setSelectedWilaya(value);
+            <Select value={selectedWilaya || '__all__'} onValueChange={(value) => {
+              setSelectedWilaya(value === '__all__' ? '' : value);
               setSelectedDaira('');
             }}>
               <SelectTrigger className="w-full sm:w-48 bg-card">
                 <SelectValue placeholder="اختر الولاية" />
               </SelectTrigger>
               <SelectContent className="bg-card border border-border z-50">
-                <SelectItem value="">كل الولايات</SelectItem>
+                <SelectItem value="__all__">كل الولايات</SelectItem>
                 {wilayas.map(w => (
                   <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
                 ))}
@@ -423,12 +423,12 @@ export function LocationsManagement() {
           )}
           
           {activeTab === 'mutamadiyat' && selectedWilaya && (
-            <Select value={selectedDaira} onValueChange={setSelectedDaira}>
+            <Select value={selectedDaira || '__all__'} onValueChange={(value) => setSelectedDaira(value === '__all__' ? '' : value)}>
               <SelectTrigger className="w-full sm:w-48 bg-card">
                 <SelectValue placeholder="اختر الدائرة" />
               </SelectTrigger>
               <SelectContent className="bg-card border border-border z-50">
-                <SelectItem value="">كل الدوائر</SelectItem>
+                <SelectItem value="__all__">كل الدوائر</SelectItem>
                 {dairasForFilter.map(d => (
                   <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                 ))}
