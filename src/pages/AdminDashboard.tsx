@@ -16,13 +16,13 @@ import { MPFormModal } from '@/components/admin/MPFormModal';
 import { LocalDeputiesManagement } from '@/components/admin/LocalDeputiesManagement';
 import { LocationsManagement } from '@/components/admin/LocationsManagement';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import type { MP } from '@/types';
+import type { MP, Complaint } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsSection } from '@/components/dashboard/SettingsSection';
 import { AdminComplaintsTable } from '@/components/admin/AdminComplaintsTable';
 import { AdminReportsSection } from '@/components/admin/AdminReportsSection';
 import { PendingRegistrations } from '@/components/admin/PendingRegistrations';
-
+import { ComplaintDetailModal } from '@/components/complaint/ComplaintDetailModal';
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
   { icon: Users, label: 'النواب', id: 'mps' },
@@ -45,6 +45,7 @@ export default function AdminDashboard() {
   const [editingMP, setEditingMP] = useState<MP | null>(null);
   const [localDeputiesCount, setLocalDeputiesCount] = useState(0);
   const [wilayasCount, setWilayasCount] = useState(0);
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
 
   // Load data from database on mount
   useEffect(() => {
@@ -383,7 +384,7 @@ export default function AdminDashboard() {
 
           {/* Complaints */}
           {activeTab === 'complaints' && (
-            <AdminComplaintsTable />
+            <AdminComplaintsTable onViewComplaint={setSelectedComplaint} />
           )}
 
           {/* Reports */}
@@ -397,6 +398,14 @@ export default function AdminDashboard() {
           )}
         </div>
       </main>
+
+      {/* Complaint Detail Modal */}
+      <ComplaintDetailModal
+        complaint={selectedComplaint}
+        isOpen={!!selectedComplaint}
+        onClose={() => setSelectedComplaint(null)}
+        onUpdate={() => {}}
+      />
     </div>
   );
 }
