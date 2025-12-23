@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, MapPin, MessageSquare, BarChart3, 
   Settings, LogOut, Menu, X, Plus, Edit, Trash2, Check, XCircle,
-  Bell, FileText, Shield, Loader2
+  Bell, FileText, Shield, Loader2, Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
@@ -12,6 +12,9 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { MPImportDialog } from '@/components/admin/MPImportDialog';
+import { MPFormModal } from '@/components/admin/MPFormModal';
+import { LocalDeputiesManagement } from '@/components/admin/LocalDeputiesManagement';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { MP } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsSection } from '@/components/dashboard/SettingsSection';
@@ -22,6 +25,7 @@ import { PendingRegistrations } from '@/components/admin/PendingRegistrations';
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
   { icon: Users, label: 'النواب', id: 'mps' },
+  { icon: Building2, label: 'نواب الجهات', id: 'local_deputies' },
   { icon: MapPin, label: 'الولايات', id: 'locations' },
   { icon: MessageSquare, label: 'الشكاوى', id: 'complaints' },
   { icon: BarChart3, label: 'التقارير', id: 'reports' },
@@ -36,6 +40,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [isMPModalOpen, setIsMPModalOpen] = useState(false);
+  const [editingMP, setEditingMP] = useState<MP | null>(null);
 
   // Load MPs from database on mount
   useEffect(() => {
@@ -283,7 +289,7 @@ export default function AdminDashboard() {
                 </p>
                 <div className="flex gap-2">
                   <MPImportDialog onImport={handleImportMPs} />
-                  <Button variant="default" className="gap-2">
+                  <Button variant="default" className="gap-2" onClick={() => { setEditingMP(null); setIsMPModalOpen(true); }}>
                     <Plus className="w-4 h-4" />
                     إضافة نائب
                   </Button>
@@ -307,7 +313,7 @@ export default function AdminDashboard() {
                       <p className="text-xs text-muted-foreground">نسبة الرد</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => { setEditingMP(mp); setIsMPModalOpen(true); }}>
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button 
@@ -322,7 +328,18 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
+              <MPFormModal
+                isOpen={isMPModalOpen}
+                onClose={() => setIsMPModalOpen(false)}
+                onSuccess={loadMPs}
+                editMP={editingMP}
+              />
             </motion.div>
+          )}
+
+          {/* Local Deputies Management */}
+          {activeTab === 'local_deputies' && (
+            <LocalDeputiesManagement />
           )}
 
           {/* Locations Management */}
