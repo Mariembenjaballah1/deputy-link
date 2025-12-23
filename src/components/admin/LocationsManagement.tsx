@@ -1,32 +1,170 @@
-import { useState } from 'react';
-import { Plus, Edit, Trash2, Search, MapPin, Building, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Search, MapPin, Building, Home, Loader2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { wilayas, dairas } from '@/data/mockData';
-import { mutamadiyat } from '@/data/mutamadiyat';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
+// Static data for initial import
+import { wilayas as staticWilayas, dairas as staticDairas } from '@/data/mockData';
+import { mutamadiyat as staticMutamadiyat } from '@/data/mutamadiyat';
+
+interface DbWilaya {
+  id: string;
+  name: string;
+  code: string;
+}
+
+interface DbDaira {
+  id: string;
+  name: string;
+  wilaya_id: string;
+}
+
+interface DbMutamadiya {
+  id: string;
+  name: string;
+  daira_id: string;
+  wilaya_id: string;
+}
 
 export function LocationsManagement() {
   const [activeTab, setActiveTab] = useState('wilayas');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedWilaya, setSelectedWilaya] = useState<string>('');
   const [selectedDaira, setSelectedDaira] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  
+  // Database data
+  const [wilayas, setWilayas] = useState<DbWilaya[]>([]);
+  const [dairas, setDairas] = useState<DbDaira[]>([]);
+  const [mutamadiyat, setMutamadiyat] = useState<DbMutamadiya[]>([]);
   
   // Modal states
   const [isWilayaModalOpen, setIsWilayaModalOpen] = useState(false);
   const [isDairaModalOpen, setIsDairaModalOpen] = useState(false);
   const [isMutamadiyaModalOpen, setIsMutamadiyaModalOpen] = useState(false);
   
+  // Edit states
+  const [editingWilaya, setEditingWilaya] = useState<DbWilaya | null>(null);
+  const [editingDaira, setEditingDaira] = useState<DbDaira | null>(null);
+  const [editingMutamadiya, setEditingMutamadiya] = useState<DbMutamadiya | null>(null);
+  
   // Form states
   const [wilayaForm, setWilayaForm] = useState({ name: '', code: '' });
   const [dairaForm, setDairaForm] = useState({ name: '', wilayaId: '' });
   const [mutamadiyaForm, setMutamadiyaForm] = useState({ name: '', wilayaId: '', dairaId: '' });
+
+  // Load data on mount
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    setLoading(true);
+    try {
+      const [wilayasRes, dairasRes, mutamadiyatRes] = await Promise.all([
+        supabase.from('wilayas').select('*').order('code'),
+        supabase.from('dairas').select('*').order('name'),
+        supabase.from('mutamadiyat').select('*').order('name'),
+      ]);
+
+      if (wilayasRes.error) throw wilayasRes.error;
+      if (dairasRes.error) throw dairasRes.error;
+      if (mutamadiyatRes.error) throw mutamadiyatRes.error;
+
+      setWilayas(wilayasRes.data || []);
+      setDairas(dairasRes.data || []);
+      setMutamadiyat(mutamadiyatRes.data || []);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('خطأ في تحميل البيانات');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Import static data to database
+  const handleImportStaticData = async () => {
+    if (wilayas.length > 0) {
+      toast.error('البيانات موجودة مسبقاً في قاعدة البيانات');
+      return;
+    }
+
+    setImporting(true);
+    try {
+      // Step 1: Import wilayas
+      const wilayasToInsert = staticWilayas.map(w => ({
+        name: w.name,
+        code: w.code,
+      }));
+
+      const { data: insertedWilayas, error: wilayasError } = await supabase
+        .from('wilayas')
+        .insert(wilayasToInsert)
+        .select();
+
+      if (wilayasError) throw wilayasError;
+
+      // Create mapping from old IDs to new UUIDs
+      const wilayaIdMap: Record<string, string> = {};
+      staticWilayas.forEach((sw, index) => {
+        if (insertedWilayas && insertedWilayas[index]) {
+          wilayaIdMap[sw.id] = insertedWilayas[index].id;
+        }
+      });
+
+      // Step 2: Import dairas
+      const dairasToInsert = staticDairas.map(d => ({
+        name: d.name,
+        wilaya_id: wilayaIdMap[d.wilayaId],
+      }));
+
+      const { data: insertedDairas, error: dairasError } = await supabase
+        .from('dairas')
+        .insert(dairasToInsert)
+        .select();
+
+      if (dairasError) throw dairasError;
+
+      // Create mapping from old daira IDs to new UUIDs
+      const dairaIdMap: Record<string, string> = {};
+      staticDairas.forEach((sd, index) => {
+        if (insertedDairas && insertedDairas[index]) {
+          dairaIdMap[sd.id] = insertedDairas[index].id;
+        }
+      });
+
+      // Step 3: Import mutamadiyat
+      const mutamadiyatToInsert = staticMutamadiyat.map(m => ({
+        name: m.name,
+        daira_id: dairaIdMap[m.dairaId],
+        wilaya_id: wilayaIdMap[m.wilayaId],
+      }));
+
+      const { error: mutamadiyatError } = await supabase
+        .from('mutamadiyat')
+        .insert(mutamadiyatToInsert);
+
+      if (mutamadiyatError) throw mutamadiyatError;
+
+      toast.success('تم استيراد البيانات بنجاح');
+      await loadAllData();
+    } catch (error) {
+      console.error('Error importing data:', error);
+      toast.error('خطأ في استيراد البيانات');
+    } finally {
+      setImporting(false);
+    }
+  };
   
   // Filtered data
   const filteredWilayas = wilayas.filter(w => 
@@ -35,57 +173,208 @@ export function LocationsManagement() {
   
   const filteredDairas = dairas.filter(d => {
     const matchesSearch = d.name.includes(searchQuery);
-    const matchesWilaya = !selectedWilaya || d.wilayaId === selectedWilaya;
+    const matchesWilaya = !selectedWilaya || d.wilaya_id === selectedWilaya;
     return matchesSearch && matchesWilaya;
   });
   
   const filteredMutamadiyat = mutamadiyat.filter(m => {
     const matchesSearch = m.name.includes(searchQuery);
-    const matchesWilaya = !selectedWilaya || m.wilayaId === selectedWilaya;
-    const matchesDaira = !selectedDaira || m.dairaId === selectedDaira;
+    const matchesWilaya = !selectedWilaya || m.wilaya_id === selectedWilaya;
+    const matchesDaira = !selectedDaira || m.daira_id === selectedDaira;
     return matchesSearch && matchesWilaya && matchesDaira;
   });
   
   const dairasForFilter = selectedWilaya 
-    ? dairas.filter(d => d.wilayaId === selectedWilaya)
+    ? dairas.filter(d => d.wilaya_id === selectedWilaya)
     : dairas;
   
   const dairasForMutamadiyaForm = mutamadiyaForm.wilayaId 
-    ? dairas.filter(d => d.wilayaId === mutamadiyaForm.wilayaId)
+    ? dairas.filter(d => d.wilaya_id === mutamadiyaForm.wilayaId)
     : [];
 
-  const handleAddWilaya = () => {
+  // CRUD Operations for Wilayas
+  const handleSaveWilaya = async () => {
     if (!wilayaForm.name || !wilayaForm.code) {
       toast.error('الرجاء ملء جميع الحقول');
       return;
     }
-    toast.success(`تمت إضافة الولاية: ${wilayaForm.name}`);
-    setIsWilayaModalOpen(false);
-    setWilayaForm({ name: '', code: '' });
+
+    try {
+      if (editingWilaya) {
+        const { error } = await supabase
+          .from('wilayas')
+          .update({ name: wilayaForm.name, code: wilayaForm.code })
+          .eq('id', editingWilaya.id);
+        if (error) throw error;
+        toast.success('تم تحديث الولاية');
+      } else {
+        const { error } = await supabase
+          .from('wilayas')
+          .insert({ name: wilayaForm.name, code: wilayaForm.code });
+        if (error) throw error;
+        toast.success('تمت إضافة الولاية');
+      }
+      setIsWilayaModalOpen(false);
+      setEditingWilaya(null);
+      setWilayaForm({ name: '', code: '' });
+      await loadAllData();
+    } catch (error) {
+      console.error('Error saving wilaya:', error);
+      toast.error('خطأ في حفظ الولاية');
+    }
   };
 
-  const handleAddDaira = () => {
+  const handleDeleteWilaya = async (id: string) => {
+    try {
+      const { error } = await supabase.from('wilayas').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('تم حذف الولاية');
+      await loadAllData();
+    } catch (error) {
+      console.error('Error deleting wilaya:', error);
+      toast.error('خطأ في حذف الولاية');
+    }
+  };
+
+  // CRUD Operations for Dairas
+  const handleSaveDaira = async () => {
     if (!dairaForm.name || !dairaForm.wilayaId) {
       toast.error('الرجاء ملء جميع الحقول');
       return;
     }
-    toast.success(`تمت إضافة الدائرة: ${dairaForm.name}`);
-    setIsDairaModalOpen(false);
-    setDairaForm({ name: '', wilayaId: '' });
+
+    try {
+      if (editingDaira) {
+        const { error } = await supabase
+          .from('dairas')
+          .update({ name: dairaForm.name, wilaya_id: dairaForm.wilayaId })
+          .eq('id', editingDaira.id);
+        if (error) throw error;
+        toast.success('تم تحديث الدائرة');
+      } else {
+        const { error } = await supabase
+          .from('dairas')
+          .insert({ name: dairaForm.name, wilaya_id: dairaForm.wilayaId });
+        if (error) throw error;
+        toast.success('تمت إضافة الدائرة');
+      }
+      setIsDairaModalOpen(false);
+      setEditingDaira(null);
+      setDairaForm({ name: '', wilayaId: '' });
+      await loadAllData();
+    } catch (error) {
+      console.error('Error saving daira:', error);
+      toast.error('خطأ في حفظ الدائرة');
+    }
   };
 
-  const handleAddMutamadiya = () => {
+  const handleDeleteDaira = async (id: string) => {
+    try {
+      const { error } = await supabase.from('dairas').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('تم حذف الدائرة');
+      await loadAllData();
+    } catch (error) {
+      console.error('Error deleting daira:', error);
+      toast.error('خطأ في حذف الدائرة');
+    }
+  };
+
+  // CRUD Operations for Mutamadiyat
+  const handleSaveMutamadiya = async () => {
     if (!mutamadiyaForm.name || !mutamadiyaForm.wilayaId || !mutamadiyaForm.dairaId) {
       toast.error('الرجاء ملء جميع الحقول');
       return;
     }
-    toast.success(`تمت إضافة المعتمدية: ${mutamadiyaForm.name}`);
-    setIsMutamadiyaModalOpen(false);
-    setMutamadiyaForm({ name: '', wilayaId: '', dairaId: '' });
+
+    try {
+      if (editingMutamadiya) {
+        const { error } = await supabase
+          .from('mutamadiyat')
+          .update({ 
+            name: mutamadiyaForm.name, 
+            wilaya_id: mutamadiyaForm.wilayaId,
+            daira_id: mutamadiyaForm.dairaId 
+          })
+          .eq('id', editingMutamadiya.id);
+        if (error) throw error;
+        toast.success('تم تحديث المعتمدية');
+      } else {
+        const { error } = await supabase
+          .from('mutamadiyat')
+          .insert({ 
+            name: mutamadiyaForm.name, 
+            wilaya_id: mutamadiyaForm.wilayaId,
+            daira_id: mutamadiyaForm.dairaId 
+          });
+        if (error) throw error;
+        toast.success('تمت إضافة المعتمدية');
+      }
+      setIsMutamadiyaModalOpen(false);
+      setEditingMutamadiya(null);
+      setMutamadiyaForm({ name: '', wilayaId: '', dairaId: '' });
+      await loadAllData();
+    } catch (error) {
+      console.error('Error saving mutamadiya:', error);
+      toast.error('خطأ في حفظ المعتمدية');
+    }
   };
+
+  const handleDeleteMutamadiya = async (id: string) => {
+    try {
+      const { error } = await supabase.from('mutamadiyat').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('تم حذف المعتمدية');
+      await loadAllData();
+    } catch (error) {
+      console.error('Error deleting mutamadiya:', error);
+      toast.error('خطأ في حذف المعتمدية');
+    }
+  };
+
+  // Edit handlers
+  const openEditWilaya = (wilaya: DbWilaya) => {
+    setEditingWilaya(wilaya);
+    setWilayaForm({ name: wilaya.name, code: wilaya.code });
+    setIsWilayaModalOpen(true);
+  };
+
+  const openEditDaira = (daira: DbDaira) => {
+    setEditingDaira(daira);
+    setDairaForm({ name: daira.name, wilayaId: daira.wilaya_id });
+    setIsDairaModalOpen(true);
+  };
+
+  const openEditMutamadiya = (m: DbMutamadiya) => {
+    setEditingMutamadiya(m);
+    setMutamadiyaForm({ name: m.name, wilayaId: m.wilaya_id, dairaId: m.daira_id });
+    setIsMutamadiyaModalOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      {/* Import Button - show only if database is empty */}
+      {wilayas.length === 0 && (
+        <div className="bg-primary/10 border border-primary/20 rounded-xl p-6 mb-6 text-center">
+          <h3 className="text-lg font-bold text-foreground mb-2">قاعدة البيانات فارغة</h3>
+          <p className="text-muted-foreground mb-4">
+            اضغط على الزر أدناه لاستيراد بيانات الولايات والدوائر والمعتمديات
+          </p>
+          <Button onClick={handleImportStaticData} disabled={importing} className="gap-2">
+            {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {importing ? 'جاري الاستيراد...' : 'استيراد البيانات'}
+          </Button>
+        </div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <TabsList className="bg-muted">
@@ -152,7 +441,11 @@ export function LocationsManagement() {
         <TabsContent value="wilayas">
           <div className="flex items-center justify-between mb-4">
             <p className="text-muted-foreground">{filteredWilayas.length} ولاية</p>
-            <Button variant="default" className="gap-2" onClick={() => setIsWilayaModalOpen(true)}>
+            <Button variant="default" className="gap-2" onClick={() => {
+              setEditingWilaya(null);
+              setWilayaForm({ name: '', code: '' });
+              setIsWilayaModalOpen(true);
+            }}>
               <Plus className="w-4 h-4" />
               إضافة ولاية
             </Button>
@@ -165,16 +458,32 @@ export function LocationsManagement() {
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">{wilaya.code}</span>
                     <span className="font-medium text-foreground">{wilaya.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      ({dairas.filter(d => d.wilayaId === wilaya.id).length} دائرة)
+                      ({dairas.filter(d => d.wilaya_id === wilaya.id).length} دائرة)
                     </span>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={() => openEditWilaya(wilaya)}>
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-card">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>حذف الولاية</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            هل أنت متأكد من حذف ولاية {wilaya.name}؟ سيتم حذف جميع الدوائر والمعتمديات المرتبطة بها.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteWilaya(wilaya.id)}>حذف</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))}
@@ -186,7 +495,11 @@ export function LocationsManagement() {
         <TabsContent value="dairas">
           <div className="flex items-center justify-between mb-4">
             <p className="text-muted-foreground">{filteredDairas.length} دائرة</p>
-            <Button variant="default" className="gap-2" onClick={() => setIsDairaModalOpen(true)}>
+            <Button variant="default" className="gap-2" onClick={() => {
+              setEditingDaira(null);
+              setDairaForm({ name: '', wilayaId: '' });
+              setIsDairaModalOpen(true);
+            }}>
               <Plus className="w-4 h-4" />
               إضافة دائرة
             </Button>
@@ -194,8 +507,8 @@ export function LocationsManagement() {
           <ScrollArea className="h-[500px]">
             <div className="bg-card rounded-xl border border-border overflow-hidden">
               {filteredDairas.map((daira) => {
-                const wilaya = wilayas.find(w => w.id === daira.wilayaId);
-                const mutamadiyatCount = mutamadiyat.filter(m => m.dairaId === daira.id).length;
+                const wilaya = wilayas.find(w => w.id === daira.wilaya_id);
+                const mutamadiyatCount = mutamadiyat.filter(m => m.daira_id === daira.id).length;
                 return (
                   <div key={daira.id} className="flex items-center justify-between p-4 border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
@@ -208,12 +521,28 @@ export function LocationsManagement() {
                       </span>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => openEditDaira(daira)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-card">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>حذف الدائرة</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              هل أنت متأكد من حذف دائرة {daira.name}؟ سيتم حذف جميع المعتمديات المرتبطة بها.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteDaira(daira.id)}>حذف</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 );
@@ -226,7 +555,11 @@ export function LocationsManagement() {
         <TabsContent value="mutamadiyat">
           <div className="flex items-center justify-between mb-4">
             <p className="text-muted-foreground">{filteredMutamadiyat.length} معتمدية</p>
-            <Button variant="default" className="gap-2" onClick={() => setIsMutamadiyaModalOpen(true)}>
+            <Button variant="default" className="gap-2" onClick={() => {
+              setEditingMutamadiya(null);
+              setMutamadiyaForm({ name: '', wilayaId: '', dairaId: '' });
+              setIsMutamadiyaModalOpen(true);
+            }}>
               <Plus className="w-4 h-4" />
               إضافة معتمدية
             </Button>
@@ -234,8 +567,8 @@ export function LocationsManagement() {
           <ScrollArea className="h-[500px]">
             <div className="bg-card rounded-xl border border-border overflow-hidden">
               {filteredMutamadiyat.map((m) => {
-                const wilaya = wilayas.find(w => w.id === m.wilayaId);
-                const daira = dairas.find(d => d.id === m.dairaId);
+                const wilaya = wilayas.find(w => w.id === m.wilaya_id);
+                const daira = dairas.find(d => d.id === m.daira_id);
                 return (
                   <div key={m.id} className="flex items-center justify-between p-4 border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3 flex-wrap">
@@ -248,12 +581,28 @@ export function LocationsManagement() {
                       </span>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => openEditMutamadiya(m)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-card">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>حذف المعتمدية</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              هل أنت متأكد من حذف معتمدية {m.name}؟
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteMutamadiya(m.id)}>حذف</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 );
@@ -263,11 +612,11 @@ export function LocationsManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Add Wilaya Modal */}
+      {/* Add/Edit Wilaya Modal */}
       <Dialog open={isWilayaModalOpen} onOpenChange={setIsWilayaModalOpen}>
         <DialogContent className="bg-card">
           <DialogHeader>
-            <DialogTitle>إضافة ولاية جديدة</DialogTitle>
+            <DialogTitle>{editingWilaya ? 'تعديل الولاية' : 'إضافة ولاية جديدة'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -290,16 +639,16 @@ export function LocationsManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsWilayaModalOpen(false)}>إلغاء</Button>
-            <Button onClick={handleAddWilaya}>إضافة</Button>
+            <Button onClick={handleSaveWilaya}>{editingWilaya ? 'تحديث' : 'إضافة'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Add Daira Modal */}
+      {/* Add/Edit Daira Modal */}
       <Dialog open={isDairaModalOpen} onOpenChange={setIsDairaModalOpen}>
         <DialogContent className="bg-card">
           <DialogHeader>
-            <DialogTitle>إضافة دائرة جديدة</DialogTitle>
+            <DialogTitle>{editingDaira ? 'تعديل الدائرة' : 'إضافة دائرة جديدة'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -329,16 +678,16 @@ export function LocationsManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDairaModalOpen(false)}>إلغاء</Button>
-            <Button onClick={handleAddDaira}>إضافة</Button>
+            <Button onClick={handleSaveDaira}>{editingDaira ? 'تحديث' : 'إضافة'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Add Mutamadiya Modal */}
+      {/* Add/Edit Mutamadiya Modal */}
       <Dialog open={isMutamadiyaModalOpen} onOpenChange={setIsMutamadiyaModalOpen}>
         <DialogContent className="bg-card">
           <DialogHeader>
-            <DialogTitle>إضافة معتمدية جديدة</DialogTitle>
+            <DialogTitle>{editingMutamadiya ? 'تعديل المعتمدية' : 'إضافة معتمدية جديدة'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -385,7 +734,7 @@ export function LocationsManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsMutamadiyaModalOpen(false)}>إلغاء</Button>
-            <Button onClick={handleAddMutamadiya}>إضافة</Button>
+            <Button onClick={handleSaveMutamadiya}>{editingMutamadiya ? 'تحديث' : 'إضافة'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
