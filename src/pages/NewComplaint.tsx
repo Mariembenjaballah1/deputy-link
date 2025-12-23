@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Camera, X, Check, Building2, Loader2, ImagePlus } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowRight, Camera, X, Check, Building2, Loader2, ImagePlus, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,8 +8,19 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ComplaintCategory, categoryLabels, categoryMinistries, isMunicipalCategory, MP, LocalDeputy } from '@/types';
-import { wilayas, dairas } from '@/data/mockData';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+
+interface DbWilaya {
+  id: string;
+  name: string;
+  code: string;
+}
+
+interface DbDaira {
+  id: string;
+  name: string;
+  wilaya_id: string;
+}
 
 const categories: { id: ComplaintCategory; label: string; icon: string }[] = [
   { id: 'municipal', label: 'بلدية', icon: '🏛️' },
@@ -47,9 +58,40 @@ export default function NewComplaint() {
   const [selectedDaira, setSelectedDaira] = useState<string | null>(null);
   const [mps, setMps] = useState<MP[]>([]);
   const [isLoadingMps, setIsLoadingMps] = useState(false);
+  
+  // Database data
+  const [wilayas, setWilayas] = useState<DbWilaya[]>([]);
+  const [dairas, setDairas] = useState<DbDaira[]>([]);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
+
+  // Load wilayas and dairas from database
+  useEffect(() => {
+    loadLocations();
+  }, []);
+
+  const loadLocations = async () => {
+    setIsLoadingLocations(true);
+    try {
+      const [wilayasRes, dairasRes] = await Promise.all([
+        supabase.from('wilayas').select('*').order('code'),
+        supabase.from('dairas').select('*').order('name')
+      ]);
+
+      if (wilayasRes.error) throw wilayasRes.error;
+      if (dairasRes.error) throw dairasRes.error;
+
+      setWilayas(wilayasRes.data || []);
+      setDairas(dairasRes.data || []);
+    } catch (error) {
+      console.error('Error loading locations:', error);
+      toast.error('خطأ في تحميل البيانات الجغرافية');
+    } finally {
+      setIsLoadingLocations(false);
+    }
+  };
 
   const filteredDairas = selectedWilaya 
-    ? dairas.filter(d => d.wilayaId === selectedWilaya)
+    ? dairas.filter(d => d.wilaya_id === selectedWilaya)
     : [];
 
   const isMunicipal = category ? isMunicipalCategory(category) : false;
@@ -232,6 +274,11 @@ export default function NewComplaint() {
             <h1 className="text-lg font-bold text-foreground">شكوى جديدة</h1>
             <p className="text-xs text-muted-foreground">الخطوة {step} من 3</p>
           </div>
+          <Link to="/notifications">
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="w-5 h-5" />
+            </Button>
+          </Link>
         </div>
         
         <div className="flex gap-2 mt-4">
@@ -447,20 +494,30 @@ export default function NewComplaint() {
                     <SheetTitle>اختر الولاية</SheetTitle>
                   </SheetHeader>
                   <div className="grid grid-cols-2 gap-3 mt-6 overflow-y-auto max-h-[45vh]">
-                    {wilayas.map((wilaya) => (
-                      <Button
-                        key={wilaya.id}
-                        variant={selectedWilaya === wilaya.id ? 'default' : 'outline'}
-                        className="justify-start h-12"
-                        onClick={() => {
-                          setSelectedWilaya(wilaya.id);
-                          setSelectedDaira(null);
-                        }}
-                      >
-                        <span className="text-xs opacity-60 ml-2">{wilaya.code}</span>
-                        {wilaya.name}
-                      </Button>
-                    ))}
+                    {isLoadingLocations ? (
+                      <div className="col-span-2 flex justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      </div>
+                    ) : wilayas.length === 0 ? (
+                      <p className="col-span-2 text-center text-muted-foreground py-8">
+                        لا توجد ولايات. يرجى استيراد البيانات من لوحة التحكم.
+                      </p>
+                    ) : (
+                      wilayas.map((wilaya) => (
+                        <Button
+                          key={wilaya.id}
+                          variant={selectedWilaya === wilaya.id ? 'default' : 'outline'}
+                          className="justify-start h-12"
+                          onClick={() => {
+                            setSelectedWilaya(wilaya.id);
+                            setSelectedDaira(null);
+                          }}
+                        >
+                          <span className="text-xs opacity-60 ml-2">{wilaya.code}</span>
+                          {wilaya.name}
+                        </Button>
+                      ))
+                    )}
                   </div>
                 </SheetContent>
               </Sheet>
@@ -486,16 +543,22 @@ export default function NewComplaint() {
                     <SheetTitle>اختر الدائرة</SheetTitle>
                   </SheetHeader>
                   <div className="grid grid-cols-2 gap-3 mt-6 overflow-y-auto max-h-[35vh]">
-                    {filteredDairas.map((daira) => (
-                      <Button
-                        key={daira.id}
-                        variant={selectedDaira === daira.id ? 'default' : 'outline'}
-                        className="justify-start h-12"
-                        onClick={() => setSelectedDaira(daira.id)}
-                      >
-                        {daira.name}
-                      </Button>
-                    ))}
+                    {filteredDairas.length === 0 ? (
+                      <p className="col-span-2 text-center text-muted-foreground py-8">
+                        لا توجد دوائر في هذه الولاية
+                      </p>
+                    ) : (
+                      filteredDairas.map((daira) => (
+                        <Button
+                          key={daira.id}
+                          variant={selectedDaira === daira.id ? 'default' : 'outline'}
+                          className="justify-start h-12"
+                          onClick={() => setSelectedDaira(daira.id)}
+                        >
+                          {daira.name}
+                        </Button>
+                      ))
+                    )}
                   </div>
                 </SheetContent>
               </Sheet>
