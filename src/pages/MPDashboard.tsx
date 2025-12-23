@@ -33,7 +33,12 @@ const sidebarItems = [
   { icon: Settings, label: 'الإعدادات', id: 'settings' },
 ];
 
-const generateOfficialLetter = (complaint: Complaint, mp: { name: string; wilaya: string; phone?: string; email?: string }) => {
+const generateOfficialLetter = (
+  complaint: Complaint, 
+  mp: { name: string; wilaya: string; phone?: string; email?: string },
+  wilayas: { id: string; name: string }[],
+  dairas: { id: string; name: string }[]
+) => {
   const today = new Date().toLocaleDateString('ar-TN', { year: 'numeric', month: 'long', day: 'numeric' });
   const ministry = categoryMinistries[complaint.category];
   const wilaya = wilayas.find(w => w.id === complaint.wilayaId)?.name || '';
@@ -83,6 +88,7 @@ ${mp.name}
 
 export default function MPDashboard() {
   const { user, logout } = useAuthStore();
+  const { wilayas, dairas } = useLocations();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
@@ -300,7 +306,7 @@ export default function MPDashboard() {
   };
 
   const handleGenerateLetter = (complaint: Complaint) => {
-    const letter = generateOfficialLetter(complaint, currentMP);
+    const letter = generateOfficialLetter(complaint, currentMP, wilayas, dairas);
     setOfficialLetter(letter);
     setShowLetterModal(true);
   };
