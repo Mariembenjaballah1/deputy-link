@@ -810,28 +810,25 @@ export default function MPDashboard() {
                   إرسال الرد
                 </Button>
                 
-                {/* Show forward to deputy for municipal complaints */}
-                {selectedComplaint.category === 'municipal' && (
-                  <Button 
-                    variant="secondary" 
-                    className="gap-2 col-span-2" 
-                    onClick={() => setShowForwardModal(true)}
-                  >
-                    <Forward className="w-4 h-4" />
-                    تحويل لنائب الجهة
-                  </Button>
-                )}
+                {/* Forward to Deputy */}
+                <Button 
+                  variant="secondary" 
+                  className="gap-2" 
+                  onClick={() => setShowForwardModal(true)}
+                >
+                  <Forward className="w-4 h-4" />
+                  تحويل لنائب الجهة
+                </Button>
                 
-                {selectedComplaint.category !== 'municipal' && (
-                  <Button variant="accent" className="gap-2 col-span-2" onClick={() => {
-                    if (selectedComplaint) {
-                      handleGenerateLetter(selectedComplaint);
-                    }
-                  }}>
-                    <FileText className="w-4 h-4" />
-                    إنشاء مراسلة للوزارة
-                  </Button>
-                )}
+                {/* Forward to Ministry */}
+                <Button variant="accent" className="gap-2" onClick={() => {
+                  if (selectedComplaint) {
+                    handleGenerateLetter(selectedComplaint);
+                  }
+                }}>
+                  <FileText className="w-4 h-4" />
+                  خزانة المداخلات
+                </Button>
                 
                 <Button variant="outline" className="gap-2 text-destructive col-span-2" onClick={() => handleStatusChange('out_of_scope')}>
                   <XCircle className="w-4 h-4" />

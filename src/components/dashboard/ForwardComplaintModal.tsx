@@ -36,14 +36,16 @@ export function ForwardComplaintModal({ complaint, mpName, onClose, onForwarded 
 
   useEffect(() => {
     loadDeputies();
-  }, [complaint.wilayaId]);
+  }, [complaint.wilayaId, complaint.dairaId]);
 
   const loadDeputies = async () => {
     try {
+      // Load deputies from the same wilaya AND daira
       const { data, error } = await supabase
         .from('local_deputies')
         .select('*')
         .eq('wilaya_id', complaint.wilayaId)
+        .eq('daira_id', complaint.dairaId)
         .eq('is_active', true);
 
       if (error) throw error;
@@ -191,7 +193,7 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-foreground">تحويل الشكوى البلدية</h3>
+            <h3 className="text-lg font-bold text-foreground">تحويل الشكوى لنائب الجهة</h3>
             <button onClick={onClose}>
               <X className="w-6 h-6 text-muted-foreground" />
             </button>
@@ -222,7 +224,7 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
             ) : deputies.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">
                 <Building2 className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p>لا يوجد نواب جهة مسجلين لهذه الولاية</p>
+                <p>لا يوجد نواب جهة مسجلين لهذه الدائرة</p>
                 <p className="text-xs mt-1">يمكنك إضافة نواب من لوحة الإدارة</p>
               </div>
             ) : (
