@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Check, XCircle, Loader2, Clock, Users, Building2, Phone, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -23,6 +23,7 @@ interface PendingRegistrationsProps {
 }
 
 export function PendingRegistrations({ onCountChange }: PendingRegistrationsProps) {
+  const { wilayas, dairas, getWilayaName, getDairaName } = useLocations();
   const [registrations, setRegistrations] = useState<PendingRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -88,13 +89,13 @@ export function PendingRegistrations({ onCountChange }: PendingRegistrationsProp
     try {
       // 1. Add to the appropriate table (mps or local_deputies)
       if (registration.role === 'mp') {
-        const wilaya = wilayas.find(w => w.id === registration.wilaya_id);
+        const wilayaName = getWilayaName(registration.wilaya_id);
         const { error: insertError } = await supabase
           .from('mps')
           .insert({
             name: registration.name,
             phone: registration.phone,
-            wilaya: wilaya?.name || '',
+            wilaya: wilayaName,
             wilaya_id: registration.wilaya_id,
             daira_id: registration.daira_id,
             is_active: true,
@@ -220,8 +221,8 @@ export function PendingRegistrations({ onCountChange }: PendingRegistrationsProp
                   </span>
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
-                    {wilayas.find(w => w.id === registration.wilaya_id)?.name}
-                    {registration.daira_id && ` - ${dairas.find(d => d.id === registration.daira_id)?.name}`}
+                    {getWilayaName(registration.wilaya_id)}
+                    {registration.daira_id && ` - ${getDairaName(registration.daira_id)}`}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">

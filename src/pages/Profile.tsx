@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import {
   Dialog,
   DialogContent,
@@ -18,17 +18,18 @@ import { toast } from 'sonner';
 export default function Profile() {
   const navigate = useNavigate();
   const { user: authUser, logout, updateWilaya } = useAuthStore();
+  const { wilayas, getDairasByWilaya, getWilayaName, getDairaName } = useLocations();
   const [showWilayaDialog, setShowWilayaDialog] = useState(false);
   const [showDairaDialog, setShowDairaDialog] = useState(false);
   const [selectedWilaya, setSelectedWilaya] = useState(authUser?.wilayaId || '1');
   
   const user = {
     phone: authUser?.phone ? `+216 ${authUser.phone}` : '+216 XX XXX XXX',
-    wilaya: wilayas.find(w => w.id === authUser?.wilayaId)?.name || 'تونس',
-    daira: dairas.find(d => d.id === authUser?.dairaId)?.name || '',
+    wilaya: getWilayaName(authUser?.wilayaId || '') || 'تونس',
+    daira: getDairaName(authUser?.dairaId || '') || '',
   };
   
-  const filteredDairas = dairas.filter(d => d.wilayaId === selectedWilaya);
+  const filteredDairas = getDairasByWilaya(selectedWilaya);
   
   const handleLogout = () => {
     logout();
@@ -39,7 +40,7 @@ export default function Profile() {
     setSelectedWilaya(wilayaId);
     setShowWilayaDialog(false);
     // Show daira dialog if there are dairas for this wilaya
-    const availableDairas = dairas.filter(d => d.wilayaId === wilayaId);
+    const availableDairas = getDairasByWilaya(wilayaId);
     if (availableDairas.length > 0) {
       setShowDairaDialog(true);
     } else {

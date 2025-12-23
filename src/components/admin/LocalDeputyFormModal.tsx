@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 
 interface LocalDeputy {
   id: string;
@@ -29,6 +29,7 @@ interface LocalDeputyFormModalProps {
 }
 
 export function LocalDeputyFormModal({ isOpen, onClose, onSuccess, editDeputy }: LocalDeputyFormModalProps) {
+  const { wilayas, getDairasByWilaya } = useLocations();
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -68,7 +69,7 @@ export function LocalDeputyFormModal({ isOpen, onClose, onSuccess, editDeputy }:
   }, [editDeputy, isOpen]);
 
   const filteredDairas = formData.wilayaId 
-    ? dairas.filter(d => d.wilayaId === formData.wilayaId)
+    ? getDairasByWilaya(formData.wilayaId)
     : [];
 
   const handleSubmit = async () => {

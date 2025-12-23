@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { categoryLabels, statusLabels } from '@/types';
 
 interface FiltersState {
@@ -23,6 +23,7 @@ interface ComplaintFiltersProps {
 }
 
 export function ComplaintFilters({ filters, onFiltersChange }: ComplaintFiltersProps) {
+  const { wilayas, dairas } = useLocations();
   const [showFilters, setShowFilters] = useState(false);
 
   const filteredDairas = filters.wilayaId 

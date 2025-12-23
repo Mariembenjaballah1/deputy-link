@@ -9,10 +9,11 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { wilayas, dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 
 export function MPProfileSettings() {
   const { user, updateProfile } = useAuthStore();
+  const { wilayas, getDairasByWilaya } = useLocations();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [name, setName] = useState('');
@@ -28,7 +29,7 @@ export function MPProfileSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const filteredDairas = dairas.filter(d => d.wilayaId === wilayaId);
+  const filteredDairas = getDairasByWilaya(wilayaId);
 
   useEffect(() => {
     if (user) {

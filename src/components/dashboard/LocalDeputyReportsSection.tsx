@@ -15,7 +15,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
-import { dairas } from '@/data/mockData';
+import { useLocations } from '@/hooks/useLocations';
 import { categoryLabels } from '@/types';
 
 interface ComplaintStats {
@@ -54,6 +54,7 @@ const COLORS = [
 ];
 
 export function LocalDeputyReportsSection() {
+  const { getDairaName } = useLocations();
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
@@ -126,7 +127,7 @@ export function LocalDeputyReportsSection() {
         // Stats by daira
         const dairaMap = new Map<string, DairaStats>();
         complaints.forEach(c => {
-          const dairaName = dairas.find(d => d.id === c.daira_id)?.name || c.daira_id;
+          const dairaName = getDairaName(c.daira_id) || c.daira_id;
           const existing = dairaMap.get(dairaName) || { name: dairaName, total: 0, pending: 0, replied: 0, resolved: 0 };
           existing.total++;
           if (c.status === 'pending') existing.pending++;
