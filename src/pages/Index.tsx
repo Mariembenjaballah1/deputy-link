@@ -5,12 +5,14 @@ import { FloatingButton } from '@/components/layout/FloatingButton';
 import { InstallPrompt } from '@/components/layout/InstallPrompt';
 import { FilterTabs } from '@/components/home/FilterTabs';
 import { MPCard } from '@/components/home/MPCard';
+import { CommunityCompanyFAQ } from '@/components/home/CommunityCompanyFAQ';
 import { useLocations } from '@/hooks/useLocations';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, Building2 } from 'lucide-react';
 import { MP } from '@/types';
 
 const Index = () => {
@@ -19,6 +21,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mpSearchQuery, setMpSearchQuery] = useState('');
   const [showMPsSheet, setShowMPsSheet] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
   const [mps, setMps] = useState<MP[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -88,6 +91,30 @@ const Index = () => {
             onWilayaChange={setSelectedWilaya}
             onShowMPs={() => setShowMPsSheet(true)}
           />
+        </motion.div>
+
+        {/* Community Company FAQ Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <Button
+            onClick={() => setShowFAQ(true)}
+            variant="outline"
+            className="w-full py-6 rounded-2xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all group"
+          >
+            <div className="flex items-center gap-4 w-full">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div className="flex-1 text-right">
+                <h3 className="font-bold text-foreground text-base">استفسار حول الشركات الأهلية</h3>
+                <p className="text-sm text-muted-foreground">معلومات شاملة عن التأسيس والإدارة</p>
+              </div>
+            </div>
+          </Button>
         </motion.div>
 
         <div className="space-y-4">
@@ -160,6 +187,9 @@ const Index = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Community Company FAQ Sheet */}
+      <CommunityCompanyFAQ open={showFAQ} onOpenChange={setShowFAQ} />
 
       <InstallPrompt />
       <FloatingButton />
