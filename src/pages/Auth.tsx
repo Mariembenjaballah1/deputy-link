@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Lock, ArrowLeft, User, Users, Shield, Building2, UserPlus, CheckCircle, Clock, XCircle, Loader2, HelpCircle } from 'lucide-react';
+import { Phone, Lock, ArrowLeft, User, Users, Shield, Building2, UserPlus, CheckCircle, Clock, XCircle, Loader2, HelpCircle, Download } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -331,6 +332,17 @@ export default function Auth() {
                 <HelpCircle className="w-5 h-5 ml-2" />
                 استفسار حول الشركات الأهلية
               </Button>
+              
+              {/* Install App Button */}
+              <Link to="/install" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full mt-2 bg-card/10 backdrop-blur-lg border-primary-foreground/20 text-primary-foreground hover:bg-card/20"
+                >
+                  <Download className="w-5 h-5 ml-2" />
+                  تثبيت التطبيق
+                </Button>
+              </Link>
             </motion.div>
           )}
 
