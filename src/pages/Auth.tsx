@@ -291,7 +291,7 @@ export default function Auth() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl font-bold text-primary-foreground mb-2">شكوى</h1>
+          <h1 className="text-4xl font-bold text-primary-foreground mb-2">تواصل</h1>
           <p className="text-primary-foreground/80">صوتك يصل</p>
         </motion.div>
 
