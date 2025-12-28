@@ -84,7 +84,7 @@ const Install = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold">تثبيت التطبيق</h1>
-            <p className="text-primary-foreground/80">أضف شكوى إلى هاتفك</p>
+            <p className="text-primary-foreground/80">أضف تواصل إلى هاتفك</p>
           </div>
         </div>
 

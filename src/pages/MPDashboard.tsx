@@ -463,7 +463,7 @@ export default function MPDashboard() {
       )}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold">شكوى</h1>
+            <h1 className="text-2xl font-bold">تواصل</h1>
             <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
               <X className="w-6 h-6" />
             </button>

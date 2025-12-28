@@ -207,7 +207,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2">
               <Shield className="w-6 h-6" />
-              <h1 className="text-xl font-bold">إدارة شكوى</h1>
+              <h1 className="text-xl font-bold">إدارة تواصل</h1>
             </div>
             <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
               <X className="w-6 h-6" />
