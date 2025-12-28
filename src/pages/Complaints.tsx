@@ -88,8 +88,8 @@ export default function Complaints() {
             <ArrowRight className="w-6 h-6 text-foreground" />
           </Link>
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-foreground">شكاواي</h1>
-            <p className="text-xs text-muted-foreground">{complaints.length} شكوى</p>
+            <h1 className="text-lg font-bold text-foreground">طلباتي</h1>
+            <p className="text-xs text-muted-foreground">{complaints.length} طلب</p>
           </div>
           <Link to="/complaint/new">
             <Button variant="default" size="sm" className="gap-2">
@@ -122,11 +122,11 @@ export default function Complaints() {
             <div className="w-20 h-20 rounded-full bg-muted mx-auto flex items-center justify-center mb-4">
               <FileText className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h2 className="text-lg font-bold text-foreground mb-2">لا توجد شكاوى</h2>
-            <p className="text-muted-foreground mb-6">لم تقم بتقديم أي شكوى بعد</p>
+            <h2 className="text-lg font-bold text-foreground mb-2">لا توجد طلبات</h2>
+            <p className="text-muted-foreground mb-6">لم تقم بتقديم أي طلب بعد</p>
             <Link to="/complaint/new">
               <Button variant="hero" size="lg">
-                تقديم شكوى جديدة
+                تقديم طلب جديد
               </Button>
             </Link>
           </motion.div>

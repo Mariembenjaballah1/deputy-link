@@ -19,7 +19,7 @@ export function Header({ onSearch }: HeaderProps) {
       <div className="container py-4">
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-primary mb-1">شكوى</h1>
+            <h1 className="text-2xl font-bold text-primary mb-1">تواصل</h1>
             <p className="text-xs text-muted-foreground">صوتك يصل</p>
           </div>
         </div>

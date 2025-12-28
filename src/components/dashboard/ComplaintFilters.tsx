@@ -64,7 +64,7 @@ export function ComplaintFilters({ filters, onFiltersChange }: ComplaintFiltersP
           <Input
             value={filters.search}
             onChange={(e) => handleChange('search', e.target.value)}
-            placeholder="بحث في الشكاوى..."
+            placeholder="بحث في الطلبات..."
             className="pr-10"
           />
         </div>

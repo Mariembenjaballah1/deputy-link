@@ -14,9 +14,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { CommunityCompanyFAQ } from '@/components/home/CommunityCompanyFAQ';
 
 const roles: { id: UserRole; label: string; icon: typeof User; description: string }[] = [
-  { id: 'citizen', label: 'مواطن', icon: User, description: 'تقديم ومتابعة الشكاوى' },
-  { id: 'mp', label: 'نائب الشعب', icon: Users, description: 'إدارة شكاوى المواطنين' },
-  { id: 'local_deputy', label: 'نائب الجهة', icon: Building2, description: 'إدارة الشكاوى البلدية' },
+  { id: 'citizen', label: 'مواطن', icon: User, description: 'تقديم ومتابعة الطلبات' },
+  { id: 'mp', label: 'نائب الشعب', icon: Users, description: 'إدارة طلبات المواطنين' },
+  { id: 'local_deputy', label: 'نائب الجهة', icon: Building2, description: 'إدارة الطلبات البلدية' },
   { id: 'admin', label: 'مدير', icon: Shield, description: 'إدارة النظام' },
 ];
 

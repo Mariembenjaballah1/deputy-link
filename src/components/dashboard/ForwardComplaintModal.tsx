@@ -62,14 +62,14 @@ export function ForwardComplaintModal({ complaint, mpName, onClose, onForwarded 
     const wilaya = getWilayaName(complaint.wilayaId);
     const daira = getDairaName(complaint.dairaId);
     
-    return `*شكوى محوّلة من نائب الشعب*
+    return `*طلب محوّل من نائب الشعب*
 
-📋 *رقم الشكوى:* ${complaint.id.slice(0, 8)}
+📋 *رقم الطلب:* ${complaint.id.slice(0, 8)}
 📁 *التصنيف:* ${categoryLabels[complaint.category]}
 📍 *الولاية:* ${wilaya}
 🏢 *البلدية:* ${daira}
 
-📝 *نص الشكوى:*
+📝 *نص الطلب:*
 ${complaint.content}
 
 ${notes ? `💬 *ملاحظات:*\n${notes}` : ''}
@@ -121,17 +121,17 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
       await supabase.from('notifications').insert({
         user_id: selectedDeputy.id,
         user_type: 'local_deputy',
-        title: 'شكوى جديدة محوّلة إليك',
-        description: `تم تحويل شكوى جديدة إليك من النائب ${mpName} في تصنيف: ${categoryLabels[complaint.category]}`,
+        title: 'طلب جديد محوّل إليك',
+        description: `تم تحويل طلب جديد إليك من النائب ${mpName} في تصنيف: ${categoryLabels[complaint.category]}`,
         complaint_id: complaint.id,
       });
 
-      toast.success(`تم تحويل الشكوى إلى ${selectedDeputy.name}`);
+      toast.success(`تم تحويل الطلب إلى ${selectedDeputy.name}`);
       onForwarded();
       onClose();
     } catch (error) {
       console.error('Error forwarding complaint:', error);
-      toast.error('خطأ في تحويل الشكوى');
+      toast.error('خطأ في تحويل الطلب');
     } finally {
       setIsForwarding(false);
     }
@@ -147,7 +147,7 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-foreground">تحويل الشكوى لنائب الجهة</h3>
+            <h3 className="text-lg font-bold text-foreground">تحويل الطلب لنائب الجهة</h3>
             <button onClick={onClose}>
               <X className="w-6 h-6 text-muted-foreground" />
             </button>
@@ -155,7 +155,7 @@ _التاريخ: ${new Date().toLocaleDateString('ar-TN')}_`;
 
           {/* Complaint Summary */}
           <div className="bg-muted/50 rounded-xl p-4 mb-6">
-            <p className="text-sm text-muted-foreground mb-2">رقم الشكوى: {complaint.id.slice(0, 8)}</p>
+            <p className="text-sm text-muted-foreground mb-2">رقم الطلب: {complaint.id.slice(0, 8)}</p>
             <p className="text-foreground line-clamp-2">{complaint.content}</p>
             <div className="flex gap-2 mt-2">
               <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">

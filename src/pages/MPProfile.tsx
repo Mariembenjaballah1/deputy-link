@@ -113,7 +113,7 @@ export default function MPProfile() {
           <div className="bg-card rounded-2xl p-4 shadow-lg border border-border/50 text-center">
             <MessageSquare className="w-8 h-8 text-primary mx-auto mb-2" />
             <p className="text-2xl font-bold text-foreground">{mp.complaintsCount}</p>
-            <p className="text-xs text-muted-foreground">شكوى مستلمة</p>
+            <p className="text-xs text-muted-foreground">طلب مستلم</p>
           </div>
           <div className="bg-card rounded-2xl p-4 shadow-lg border border-border/50 text-center">
             <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
@@ -137,7 +137,7 @@ export default function MPProfile() {
       <div className="container mt-8">
         <Link to="/complaint/new">
           <Button variant="hero" size="xl" className="w-full">
-            إرسال شكوى لهذا النائب
+            إرسال طلب لهذا النائب
           </Button>
         </Link>
       </div>

@@ -35,7 +35,7 @@ export function MPCard({ mp, index }: MPCardProps) {
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
             <div className="flex items-center gap-2 text-sm">
               <MessageSquare className="w-4 h-4 text-primary" />
-              <span className="text-muted-foreground">{mp.complaintsCount} شكوى</span>
+              <span className="text-muted-foreground">{mp.complaintsCount} طلب</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <TrendingUp className="w-4 h-4 text-secondary" />

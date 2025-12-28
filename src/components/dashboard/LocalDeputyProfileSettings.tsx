@@ -373,7 +373,7 @@ export function LocalDeputyProfileSettings() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-foreground">تفعيل الإشعارات</p>
-              <p className="text-sm text-muted-foreground">استلام إشعارات عند وصول شكوى جديدة</p>
+              <p className="text-sm text-muted-foreground">استلام إشعارات عند وصول طلب جديد</p>
             </div>
             <Switch
               checked={settings.notifications_enabled}
