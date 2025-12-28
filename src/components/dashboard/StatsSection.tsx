@@ -90,12 +90,12 @@ export function StatsSection({ stats, type }: StatsSectionProps) {
         
         <hr style="border: none; border-top: 2px solid #333; margin: 20px 0;" />
         
-        <h2 style="font-size: 18px; margin-bottom: 20px;">ملخص الشكاوى</h2>
+        <h2 style="font-size: 18px; margin-bottom: 20px;">ملخص الطلبات</h2>
         
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px;">
           <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
-            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #333;">${stats.total}</p>
-            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">إجمالي الشكاوى</p>
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #333;">\${stats.total}</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">إجمالي الطلبات</p>
           </div>
           <div style="background: #fef3c7; padding: 15px; border-radius: 8px; text-align: center;">
             <p style="font-size: 24px; font-weight: bold; margin: 0; color: #d97706;">${stats.pending}</p>
@@ -131,13 +131,13 @@ export function StatsSection({ stats, type }: StatsSectionProps) {
             <span style="font-weight: bold;">2-3 أيام</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: #666;">الشكاوى المعالجة</span>
+            <span style="color: #666;">الطلبات المعالجة</span>
             <span style="font-weight: bold;">${stats.replied + (stats.forwarded || 0)}</span>
           </div>
         </div>
         
         <div style="margin-top: 40px; text-align: center; color: #999; font-size: 11px;">
-          <p>تم إنشاء هذا التقرير تلقائياً من نظام شكوى</p>
+          <p>تم إنشاء هذا التقرير تلقائياً من نظام تواصل</p>
           <p>© ${new Date().getFullYear()} جميع الحقوق محفوظة</p>
         </div>
       `;
@@ -207,7 +207,7 @@ export function StatsSection({ stats, type }: StatsSectionProps) {
         <div className="bg-card rounded-2xl p-4 border border-border">
           <MessageSquare className="w-8 h-8 text-primary mb-2" />
           <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-          <p className="text-sm text-muted-foreground">إجمالي الشكاوى</p>
+          <p className="text-sm text-muted-foreground">إجمالي الطلبات</p>
         </div>
         <div className="bg-card rounded-2xl p-4 border border-border">
           <Clock className="w-8 h-8 text-warning mb-2" />
@@ -236,7 +236,7 @@ export function StatsSection({ stats, type }: StatsSectionProps) {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Pie Chart */}
         <div className="bg-card rounded-2xl p-6 border border-border">
-          <h3 className="text-lg font-bold text-foreground mb-4">توزيع حالات الشكاوى</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">توزيع حالات الطلبات</h3>
           {stats.total > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -275,7 +275,7 @@ export function StatsSection({ stats, type }: StatsSectionProps) {
 
         {/* Bar Chart */}
         <div className="bg-card rounded-2xl p-6 border border-border">
-          <h3 className="text-lg font-bold text-foreground mb-4">إحصائيات الشكاوى</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">إحصائيات الطلبات</h3>
           {stats.total > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -321,7 +321,7 @@ export function StatsSection({ stats, type }: StatsSectionProps) {
             <span className="font-bold text-foreground">2-3 أيام</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">الشكاوى هذا الشهر</span>
+            <span className="text-muted-foreground">الطلبات هذا الشهر</span>
             <span className="font-bold text-foreground">{stats.total}</span>
           </div>
           <div className="flex items-center justify-between">
@@ -330,7 +330,7 @@ export function StatsSection({ stats, type }: StatsSectionProps) {
           </div>
           {stats.forwarded !== undefined && stats.forwarded > 0 && (
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">الشكاوى المحولة</span>
+              <span className="text-muted-foreground">الطلبات المحولة</span>
               <span className="font-bold text-primary">{stats.forwarded}</span>
             </div>
           )}

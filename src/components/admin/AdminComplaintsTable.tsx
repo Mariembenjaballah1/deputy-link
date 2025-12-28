@@ -164,7 +164,7 @@ export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTablePr
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="بحث في الشكاوى..."
+            placeholder="بحث في الطلبات..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pr-10"
@@ -258,7 +258,7 @@ export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTablePr
         </div>
         
         <span className="text-sm text-muted-foreground mr-auto">
-          {filteredComplaints.length} شكوى
+          {filteredComplaints.length} طلب
         </span>
       </div>
 
@@ -360,7 +360,7 @@ export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTablePr
         {filteredComplaints.length === 0 && (
           <div className="text-center py-12">
             <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">لا توجد شكاوى تطابق البحث</p>
+            <p className="text-muted-foreground">لا توجد طلبات تطابق البحث</p>
           </div>
         )}
       </div>

@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { path: '/citizen', icon: Home, label: 'الرئيسية' },
-  { path: '/complaints', icon: FileText, label: 'شكاواي' },
+  { path: '/complaints', icon: FileText, label: 'طلباتي' },
   { path: '/notifications', icon: Bell, label: 'الإشعارات' },
   { path: '/profile', icon: User, label: 'حسابي' },
 ];

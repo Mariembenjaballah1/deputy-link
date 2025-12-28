@@ -40,7 +40,7 @@ export function ComplaintDetailModal({
 
   const handleSave = async () => {
     if (!editContent.trim()) {
-      toast.error('محتوى الشكوى مطلوب');
+      toast.error('محتوى الطلب مطلوب');
       return;
     }
 
@@ -53,12 +53,12 @@ export function ComplaintDetailModal({
 
       if (error) throw error;
 
-      toast.success('تم تحديث الشكوى بنجاح');
+      toast.success('تم تحديث الطلب بنجاح');
       setIsEditing(false);
       onUpdate();
     } catch (error) {
       console.error('Error updating complaint:', error);
-      toast.error('خطأ في تحديث الشكوى');
+      toast.error('خطأ في تحديث الطلب');
     } finally {
       setIsSaving(false);
     }
@@ -74,12 +74,12 @@ export function ComplaintDetailModal({
 
       if (error) throw error;
 
-      toast.success('تم حذف الشكوى بنجاح');
+      toast.success('تم حذف الطلب بنجاح');
       onClose();
       onUpdate();
     } catch (error) {
       console.error('Error deleting complaint:', error);
-      toast.error('خطأ في حذف الشكوى');
+      toast.error('خطأ في حذف الطلب');
     } finally {
       setIsDeleting(false);
     }
@@ -98,7 +98,7 @@ export function ComplaintDetailModal({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>تفاصيل الشكوى</span>
+            <span>تفاصيل الطلب</span>
             <span className={cn("text-xs px-3 py-1 rounded-full", statusStyles[complaint.status])}>
               {statusLabels[complaint.status]}
             </span>
@@ -107,7 +107,7 @@ export function ComplaintDetailModal({
 
         <div className="space-y-4">
           <div>
-            <p className="text-xs text-muted-foreground mb-1">رقم الشكوى</p>
+            <p className="text-xs text-muted-foreground mb-1">رقم الطلب</p>
             <p className="text-sm font-mono text-foreground">#{complaint.id.slice(0, 8)}</p>
           </div>
 
@@ -199,7 +199,7 @@ export function ComplaintDetailModal({
                     <AlertDialogHeader>
                       <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
                       <AlertDialogDescription>
-                        سيتم حذف هذه الشكوى نهائياً ولا يمكن استرجاعها.
+                        سيتم حذف هذا الطلب نهائياً ولا يمكن استرجاعه.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

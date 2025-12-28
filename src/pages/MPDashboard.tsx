@@ -53,23 +53,23 @@ const generateOfficialLetter = (
 السيد/السيدة
 وزير ${ministry}
 
-الموضوع: إحالة شكوى مواطن
+الموضوع: إحالة طلب مواطن
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 حضرة السيد/السيدة الوزير،
 
-تبعا للمهام الدستورية الموكولة إلينا، وحرصًا على متابعة مشاغل المواطنين، يشرفني أن أتقدم إلى سيادتكم بهذه المراسلة قصد النظر في الشكوى التالية:
+تبعا للمهام الدستورية الموكولة إلينا، وحرصًا على متابعة مشاغل المواطنين، يشرفني أن أتقدم إلى سيادتكم بهذه المراسلة قصد النظر في الطلب التالي:
 
-📌 موضوع الشكوى:
-${categoryLabels[complaint.category]}
+📌 موضوع الطلب:
+\${categoryLabels[complaint.category]}
 
-📍 مكان الشكوى:
-الولاية: ${wilaya}
-البلدية: ${daira}
+📍 مكان الطلب:
+الولاية: \${wilaya}
+البلدية: \${daira}
 
-📝 نص الشكوى:
-${complaint.content}
+📝 نص الطلب:
+\${complaint.content}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -274,10 +274,10 @@ export default function MPDashboard() {
             : c
         ));
         setSelectedComplaint(null);
-        toast.success(`تم تحويل الشكوى إلى: ${forwardTo}`);
+        toast.success(`تم تحويل الطلب إلى: ${forwardTo}`);
       } catch (error) {
         console.error('Error forwarding complaint:', error);
-        toast.error('خطأ في تحويل الشكوى');
+        toast.error('خطأ في تحويل الطلب');
       }
     }
   };
@@ -376,24 +376,24 @@ export default function MPDashboard() {
         <p style="margin: 5px 0; font-weight: bold; font-size: 16px;">وزير ${ministry}</p>
       </div>
       
-      <p style="margin-bottom: 20px;"><strong>الموضوع:</strong> إحالة شكوى مواطن</p>
+      <p style="margin-bottom: 20px;"><strong>الموضوع:</strong> إحالة طلب مواطن</p>
       
       <hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;" />
       
       <p style="margin-bottom: 15px;">حضرة السيد/السيدة الوزير،</p>
       
       <p style="margin-bottom: 20px; text-align: justify;">
-        تبعا للمهام الدستورية الموكولة إلينا، وحرصا على متابعة مشاغل المواطنين، يشرفني أن أتقدم إلى سيادتكم بهذه المراسلة قصد النظر في الشكوى التالية:
+        تبعا للمهام الدستورية الموكولة إلينا، وحرصا على متابعة مشاغل المواطنين، يشرفني أن أتقدم إلى سيادتكم بهذه المراسلة قصد النظر في الطلب التالي:
       </p>
       
       <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <p style="margin: 5px 0;"><strong>موضوع الشكوى:</strong> ${categoryLabels[selectedComplaint.category]}</p>
-        <p style="margin: 5px 0;"><strong>الولاية:</strong> ${wilaya}</p>
-        <p style="margin: 5px 0;"><strong>البلدية:</strong> ${daira}</p>
+        <p style="margin: 5px 0;"><strong>موضوع الطلب:</strong> \${categoryLabels[selectedComplaint.category]}</p>
+        <p style="margin: 5px 0;"><strong>الولاية:</strong> \${wilaya}</p>
+        <p style="margin: 5px 0;"><strong>البلدية:</strong> \${daira}</p>
       </div>
       
       <div style="margin-bottom: 20px;">
-        <p style="margin-bottom: 10px;"><strong>نص الشكوى:</strong></p>
+        <p style="margin-bottom: 10px;"><strong>نص الطلب:</strong></p>
         <div style="background: #fafafa; padding: 15px; border-right: 4px solid #333; text-align: justify;">
           ${selectedComplaint.content}
         </div>
@@ -693,7 +693,7 @@ export default function MPDashboard() {
                 )}
                 
                 <span className="text-sm text-muted-foreground mr-auto">
-                  {filteredComplaints.length} شكوى
+                  {filteredComplaints.length} طلب
                 </span>
               </div>
               
@@ -813,7 +813,7 @@ export default function MPDashboard() {
                                 .eq('id', complaint.id);
                               if (error) throw error;
                               loadComplaints();
-                              toast.success('تم إرجاع الشكوى للقائمة الرئيسية');
+                              toast.success('تم إرجاع الطلب للقائمة الرئيسية');
                             } catch (error) {
                               toast.error('خطأ في تحديث الحالة');
                             }
@@ -852,7 +852,7 @@ export default function MPDashboard() {
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold">تفاصيل الشكوى #{selectedComplaint.id}</h3>
+                <h3 className="text-lg font-bold">تفاصيل الطلب #{selectedComplaint.id}</h3>
                 <button onClick={() => setSelectedComplaint(null)}>
                   <X className="w-6 h-6 text-muted-foreground" />
                 </button>

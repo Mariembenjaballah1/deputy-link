@@ -178,7 +178,7 @@ export default function Notifications() {
               <Bell className="w-10 h-10 text-muted-foreground" />
             </div>
             <h2 className="text-lg font-bold text-foreground mb-2">لا توجد إشعارات</h2>
-            <p className="text-muted-foreground">ستظهر هنا إشعارات تحديثات شكاواك</p>
+            <p className="text-muted-foreground">ستظهر هنا إشعارات تحديثات طلباتك</p>
           </div>
         )}
       </main>

@@ -215,7 +215,7 @@ export function AdminReportsSection() {
       tempDiv.innerHTML = `
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="font-size: 28px; margin: 0; font-weight: bold; color: #1a1a1a;">التقرير الإداري الشامل</h1>
-          <p style="font-size: 14px; color: #666; margin-top: 8px;">نظام شكوى - لوحة الإدارة</p>
+          <p style="font-size: 14px; color: #666; margin-top: 8px;">نظام تواصل - لوحة الإدارة</p>
           <p style="font-size: 12px; color: #999; margin-top: 4px;">التاريخ: ${today}</p>
         </div>
         
@@ -314,7 +314,7 @@ export function AdminReportsSection() {
         </div>
         
         <div style="margin-top: 40px; text-align: center; color: #999; font-size: 11px;">
-          <p>تم إنشاء هذا التقرير تلقائياً من نظام شكوى</p>
+          <p>تم إنشاء هذا التقرير تلقائياً من نظام تواصل</p>
           <p>© ${new Date().getFullYear()} جميع الحقوق محفوظة</p>
         </div>
       `;
@@ -600,7 +600,7 @@ export function AdminReportsSection() {
                     <span className="font-medium text-foreground">{wilaya.name}</span>
                   </div>
                   <div className="flex items-center gap-4 text-sm">
-                    <span className="text-muted-foreground">{wilaya.total} شكوى</span>
+                    <span className="text-muted-foreground">{wilaya.total} طلب</span>
                     <span className="text-secondary">{wilaya.replied} رد</span>
                   </div>
                 </div>
@@ -617,7 +617,7 @@ export function AdminReportsSection() {
         <div className="bg-card rounded-2xl p-6 border border-border">
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-bold text-foreground">تطور الشكاوى الشهري</h3>
+            <h3 className="text-lg font-bold text-foreground">تطور الطلبات الشهري</h3>
           </div>
           {monthlyStats.length > 0 ? (
             <div className="h-64">
@@ -638,7 +638,7 @@ export function AdminReportsSection() {
                       borderRadius: '8px',
                       direction: 'rtl'
                     }}
-                    formatter={(value: number) => [value, 'شكوى']}
+                    formatter={(value: number) => [value, 'طلب']}
                   />
                   <Line 
                     type="monotone" 

@@ -308,7 +308,7 @@ export function MPProfileSettings() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-foreground">تفعيل الإشعارات</p>
-              <p className="text-sm text-muted-foreground">استلام إشعارات عند وصول شكاوى جديدة</p>
+              <p className="text-sm text-muted-foreground">استلام إشعارات عند وصول طلبات جديدة</p>
             </div>
             <Switch checked={notifications} onCheckedChange={handleNotificationsToggle} />
           </div>

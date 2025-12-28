@@ -203,7 +203,7 @@ export function SettingsSection({ type }: SettingsSectionProps) {
               <p className="font-medium text-foreground">تفعيل الإشعارات</p>
               <p className="text-sm text-muted-foreground">
                 {type === 'mp' || type === 'local_deputy' 
-                  ? 'ستتلقى إشعارات عند وصول شكاوى جديدة'
+                  ? 'ستتلقى إشعارات عند وصول طلبات جديدة'
                   : 'ستتلقى إشعارات عند تسجيل نواب جدد'
                 }
               </p>

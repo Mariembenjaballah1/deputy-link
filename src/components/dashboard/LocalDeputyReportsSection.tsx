@@ -235,7 +235,7 @@ export function LocalDeputyReportsSection() {
         
         <hr style="border: none; border-top: 2px solid #333; margin: 20px 0;" />
         
-        <h2 style="font-size: 18px; margin-bottom: 20px; color: #333;">ملخص الشكاوى</h2>
+        <h2 style="font-size: 18px; margin-bottom: 20px; color: #333;">ملخص الطلبات</h2>
         
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 30px;">
           <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
@@ -256,7 +256,7 @@ export function LocalDeputyReportsSection() {
           </div>
         </div>
 
-        <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">الشكاوى حسب الدائرة</h2>
+        <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">الطلبات حسب الدائرة</h2>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
           <thead>
             <tr style="background: #f3f4f6;">
@@ -280,7 +280,7 @@ export function LocalDeputyReportsSection() {
           </tbody>
         </table>
 
-        <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">الشكاوى حسب نوع المشكل</h2>
+        <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">الطلبات حسب نوع المشكل</h2>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
           <thead>
             <tr style="background: #f3f4f6;">
@@ -307,13 +307,13 @@ export function LocalDeputyReportsSection() {
             <span style="font-weight: bold; color: ${resolutionRate >= 50 ? '#059669' : '#dc2626'};">${resolutionRate}%</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span>الشكاوى المعالجة</span>
+            <span>الطلبات المعالجة</span>
             <span style="font-weight: bold;">${stats.replied + stats.resolved}</span>
           </div>
         </div>
         
         <div style="margin-top: 40px; text-align: center; color: #999; font-size: 11px;">
-          <p>تم إنشاء هذا التقرير تلقائياً من نظام شكوى</p>
+          <p>تم إنشاء هذا التقرير تلقائياً من نظام تواصل</p>
           <p>© ${new Date().getFullYear()} جميع الحقوق محفوظة</p>
         </div>
       `;
@@ -360,7 +360,7 @@ export function LocalDeputyReportsSection() {
         ['تقرير نائب الجهة'],
         [''],
         ['الإحصائيات العامة'],
-        ['إجمالي الشكاوى', stats.total],
+        ['إجمالي الطلبات', stats.total],
         ['قيد الانتظار', stats.pending],
         ['تم الاطلاع', stats.viewed],
         ['تم الرد', stats.replied],
@@ -601,7 +601,7 @@ export function LocalDeputyReportsSection() {
                       <span className="font-medium text-foreground">{daira.name}</span>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
-                      <span className="text-muted-foreground">{daira.total} شكوى</span>
+                      <span className="text-muted-foreground">{daira.total} طلب</span>
                       <span className={rate >= 50 ? 'text-secondary' : 'text-warning'}>{rate}%</span>
                     </div>
                   </div>
@@ -646,7 +646,7 @@ export function LocalDeputyReportsSection() {
                     dataKey="count" 
                     stroke="hsl(var(--secondary))" 
                     strokeWidth={2}
-                    name="الشكاوى"
+                    name="الطلبات"
                     dot={{ fill: 'hsl(var(--secondary))' }}
                   />
                   <Line 

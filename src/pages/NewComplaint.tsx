@@ -241,19 +241,19 @@ export default function NewComplaint() {
       if (error) throw error;
       
       if (isMunicipal) {
-        toast.success('تم إرسال الشكوى إلى نائب الجهة', {
-          description: 'سيتم معالجة شكواك في أقرب وقت',
+        toast.success('تم إرسال الطلب إلى نائب الجهة', {
+          description: 'سيتم معالجة طلبك في أقرب وقت',
         });
       } else {
-        toast.success('تم إرسال الشكوى إلى نائب الشعب', {
-          description: `سيتم توجيهها إلى ${ministry}`,
+        toast.success('تم إرسال الطلب إلى نائب الشعب', {
+          description: `سيتم توجيهه إلى ${ministry}`,
         });
       }
       
       navigate('/complaints');
     } catch (error) {
       console.error('Error submitting complaint:', error);
-      toast.error('خطأ في إرسال الشكوى');
+      toast.error('خطأ في إرسال الطلب');
     } finally {
       setIsSubmitting(false);
     }
@@ -271,7 +271,7 @@ export default function NewComplaint() {
             <ArrowRight className="w-6 h-6 text-foreground" />
           </button>
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-foreground">شكوى جديدة</h1>
+            <h1 className="text-lg font-bold text-foreground">طلب جديد</h1>
             <p className="text-xs text-muted-foreground">الخطوة {step} من 3</p>
           </div>
           <Link to="/notifications">
@@ -303,13 +303,13 @@ export default function NewComplaint() {
             exit={{ opacity: 0, x: -50 }}
             className="p-4"
           >
-            <h2 className="text-xl font-bold text-foreground mb-2">محتوى الشكوى</h2>
+            <h2 className="text-xl font-bold text-foreground mb-2">محتوى الطلب</h2>
             <p className="text-sm text-muted-foreground mb-6">
-              اكتب شكوتك بالتفصيل لتسهيل معالجتها
+              اكتب طلبك بالتفصيل لتسهيل معالجته
             </p>
 
             <Textarea
-              placeholder="اكتب شكوتك هنا..."
+              placeholder="اكتب طلبك هنا..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[200px] text-base bg-card border-border resize-none"
@@ -469,7 +469,7 @@ export default function NewComplaint() {
                 "p-3 rounded-xl mb-4",
                 isMunicipal ? "bg-secondary/10 border border-secondary/30" : "bg-primary/10 border border-primary/30"
               )}>
-                <p className="text-xs text-muted-foreground mb-1">نوع الشكوى</p>
+                <p className="text-xs text-muted-foreground mb-1">نوع الطلب</p>
                 <p className="font-bold text-foreground">{categoryLabels[category]}</p>
                 {!isMunicipal && ministry && (
                   <p className="text-xs text-primary mt-1">← ستوجّه إلى: {ministry}</p>
@@ -611,7 +611,7 @@ export default function NewComplaint() {
                   </div>
                   {ministry && (
                     <p className="text-xs text-primary/70 mt-3 bg-primary/5 p-2 rounded-lg">
-                      📋 سيتم توجيه الشكوى إلى: {ministry}
+                      📋 سيتم توجيه الطلب إلى: {ministry}
                     </p>
                   )}
                 </motion.div>
@@ -632,7 +632,7 @@ export default function NewComplaint() {
                     جاري الإرسال...
                   </>
                 ) : (
-                  'إرسال الشكوى'
+                  'إرسال الطلب'
                 )}
               </Button>
             </div>
