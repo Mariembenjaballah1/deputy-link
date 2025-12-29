@@ -30,7 +30,7 @@ const sidebarItems = [
   { icon: Users, label: 'النواب', id: 'mps' },
   { icon: Building2, label: 'نواب الجهات', id: 'local_deputies' },
   { icon: MapPin, label: 'الولايات', id: 'locations' },
-  { icon: MessageSquare, label: 'الشكاوى', id: 'complaints' },
+  { icon: MessageSquare, label: 'الطلبات', id: 'complaints' },
   { icon: BarChart3, label: 'التقارير', id: 'reports' },
   { icon: Settings, label: 'الإعدادات', id: 'settings' },
 ];
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
                 <div className="bg-card rounded-2xl p-4 border border-border">
                   <MessageSquare className="w-8 h-8 text-warning mb-2" />
                   <p className="text-2xl font-bold text-foreground">{stats.complaints}</p>
-                  <p className="text-sm text-muted-foreground">الشكاوى</p>
+                  <p className="text-sm text-muted-foreground">الطلبات</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border">
                   <FileText className="w-8 h-8 text-destructive mb-2" />

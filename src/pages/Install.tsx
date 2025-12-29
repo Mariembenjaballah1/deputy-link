@@ -70,7 +70,7 @@ const Install = () => {
 
   const features = [
     { icon: Smartphone, title: "تشغيل كتطبيق", description: "افتح التطبيق مباشرة من الشاشة الرئيسية" },
-    { icon: WifiOff, title: "العمل بدون إنترنت", description: "تصفح الشكاوى المحفوظة حتى بدون اتصال" },
+    { icon: WifiOff, title: "العمل بدون إنترنت", description: "تصفح الطلبات المحفوظة حتى بدون اتصال" },
     { icon: Download, title: "تحديثات تلقائية", description: "احصل على آخر التحسينات تلقائياً" },
   ];
 

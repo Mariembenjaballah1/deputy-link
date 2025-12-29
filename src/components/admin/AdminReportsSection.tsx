@@ -234,11 +234,11 @@ export function AdminReportsSection() {
           </div>
           <div style="background: #faf5ff; padding: 15px; border-radius: 8px; text-align: center;">
             <p style="font-size: 28px; font-weight: bold; margin: 0; color: #7c3aed;">${stats.total}</p>
-            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">إجمالي الشكاوى</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">إجمالي الطلبات</p>
           </div>
         </div>
 
-        <h2 style="font-size: 18px; margin-bottom: 20px; color: #333;">حالات الشكاوى</h2>
+        <h2 style="font-size: 18px; margin-bottom: 20px; color: #333;">حالات الطلبات</h2>
         
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 30px;">
           <div style="background: #fef3c7; padding: 12px; border-radius: 8px; text-align: center;">
@@ -259,7 +259,7 @@ export function AdminReportsSection() {
           </div>
         </div>
 
-        <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">أعلى 5 ولايات من حيث الشكاوى</h2>
+        <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">أعلى 5 ولايات من حيث الطلبات</h2>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
           <thead>
             <tr style="background: #f3f4f6;">
@@ -281,7 +281,7 @@ export function AdminReportsSection() {
           </tbody>
         </table>
 
-        <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">توزيع الشكاوى حسب الصنف</h2>
+        <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">توزيع الطلبات حسب الصنف</h2>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
           <thead>
             <tr style="background: #f3f4f6;">
@@ -308,7 +308,7 @@ export function AdminReportsSection() {
             <span style="font-weight: bold; color: ${responseRate >= 50 ? '#059669' : '#dc2626'};">${responseRate}%</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span>الشكاوى المعالجة</span>
+            <span>الطلبات المعالجة</span>
             <span style="font-weight: bold;">${stats.replied + stats.forwarded}</span>
           </div>
         </div>
@@ -363,9 +363,9 @@ export function AdminReportsSection() {
         ['الإحصائيات العامة'],
         ['نواب الشعب', mpsCount],
         ['نواب الجهة', deputiesCount],
-        ['إجمالي الشكاوى', stats.total],
+        ['إجمالي الطلبات', stats.total],
         [''],
-        ['حالات الشكاوى'],
+        ['حالات الطلبات'],
         ['قيد الانتظار', stats.pending],
         ['تم الاطلاع', stats.viewed],
         ['تم الرد', stats.replied],
@@ -472,7 +472,7 @@ export function AdminReportsSection() {
         <div className="bg-card rounded-2xl p-4 border border-border">
           <MessageSquare className="w-8 h-8 text-accent mb-2" />
           <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-          <p className="text-sm text-muted-foreground">إجمالي الشكاوى</p>
+          <p className="text-sm text-muted-foreground">إجمالي الطلبات</p>
         </div>
         <div className="bg-card rounded-2xl p-4 border border-border">
           <TrendingUp className="w-8 h-8 text-info mb-2" />
@@ -505,7 +505,7 @@ export function AdminReportsSection() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Pie Chart - Status Distribution */}
         <div className="bg-card rounded-2xl p-6 border border-border">
-          <h3 className="text-lg font-bold text-foreground mb-4">توزيع حالات الشكاوى</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">توزيع حالات الطلبات</h3>
           {stats.total > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -544,7 +544,7 @@ export function AdminReportsSection() {
 
         {/* Bar Chart - By Category */}
         <div className="bg-card rounded-2xl p-6 border border-border">
-          <h3 className="text-lg font-bold text-foreground mb-4">الشكاوى حسب الصنف</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">الطلبات حسب الصنف</h3>
           {categoryStats.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">

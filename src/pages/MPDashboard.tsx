@@ -27,7 +27,7 @@ import { AuditTrail } from '@/components/dashboard/AuditTrail';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
-  { icon: MessageSquare, label: 'الشكاوى', id: 'complaints' },
+  { icon: MessageSquare, label: 'الطلبات', id: 'complaints' },
   { icon: Inbox, label: 'خزانة المداخلات', id: 'cabinet' },
   { icon: BarChart3, label: 'الإحصائيات', id: 'stats' },
   { icon: Settings, label: 'الإعدادات', id: 'settings' },
@@ -543,7 +543,7 @@ export default function MPDashboard() {
               <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 mb-6">
                 <p className="font-bold text-primary mb-1">📋 مهامك كنائب شعب</p>
                 <p className="text-sm text-muted-foreground">
-                  تصلك الشكاوى غير البلدية • يمكنك إنشاء مراسلات رسمية للوزارات المختصة
+                  تصلك الطلبات غير البلدية • يمكنك إنشاء مراسلات رسمية للوزارات المختصة
                 </p>
               </div>
 
@@ -552,7 +552,7 @@ export default function MPDashboard() {
                 <div className="bg-card rounded-2xl p-4 border border-border">
                   <MessageSquare className="w-8 h-8 text-primary mb-2" />
                   <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                  <p className="text-sm text-muted-foreground">إجمالي الشكاوى</p>
+                  <p className="text-sm text-muted-foreground">إجمالي الطلبات</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border">
                   <Clock className="w-8 h-8 text-warning mb-2" />
@@ -577,7 +577,7 @@ export default function MPDashboard() {
               </div>
 
               {/* Recent Complaints */}
-              <h3 className="text-lg font-bold text-foreground mb-4">الشكاوى الأخيرة</h3>
+              <h3 className="text-lg font-bold text-foreground mb-4">الطلبات الأخيرة</h3>
               <div className="space-y-3">
                 {complaints.slice(0, 5).map((complaint) => (
                   <div 
@@ -741,22 +741,22 @@ export default function MPDashboard() {
               <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-6">
                 <p className="font-bold text-accent mb-1">📁 خزانة المداخلات</p>
                 <p className="text-sm text-muted-foreground">
-                  الشكاوى المحفوظة للمتابعة لاحقاً • يمكنك إنشاء مراسلات رسمية للوزارات من هنا
+                  الطلبات المحفوظة للمتابعة لاحقاً • يمكنك إنشاء مراسلات رسمية للوزارات من هنا
                 </p>
               </div>
 
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-foreground">
-                  الشكاوى في الخزانة ({stats.inCabinet})
+                  الطلبات في الخزانة ({stats.inCabinet})
                 </h3>
               </div>
 
               {complaints.filter(c => c.status === 'in_cabinet').length === 0 ? (
                 <div className="bg-card rounded-xl p-8 border border-border text-center">
                   <Inbox className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                  <p className="text-muted-foreground">لا توجد شكاوى في الخزانة</p>
+                  <p className="text-muted-foreground">لا توجد طلبات في الخزانة</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    يمكنك إضافة شكاوى من قسم الشكاوى بالضغط على "إضافة للخزانة"
+                    يمكنك إضافة طلبات من قسم الطلبات بالضغط على "إضافة للخزانة"
                   </p>
                 </div>
               ) : (
