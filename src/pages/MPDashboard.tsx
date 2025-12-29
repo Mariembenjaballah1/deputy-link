@@ -1022,6 +1022,8 @@ export default function MPDashboard() {
         <ForwardComplaintModal
           complaint={selectedComplaint}
           mpName={currentMP.name}
+          mpWilayaId={user?.wilayaId || ''}
+          mpDairaId={user?.dairaId || ''}
           onClose={() => setShowForwardModal(false)}
           onForwarded={() => {
             loadComplaints();

@@ -22,11 +22,13 @@ interface LocalDeputy {
 interface ForwardComplaintModalProps {
   complaint: Complaint;
   mpName: string;
+  mpWilayaId: string;
+  mpDairaId: string;
   onClose: () => void;
   onForwarded: () => void;
 }
 
-export function ForwardComplaintModal({ complaint, mpName, onClose, onForwarded }: ForwardComplaintModalProps) {
+export function ForwardComplaintModal({ complaint, mpName, mpWilayaId, mpDairaId, onClose, onForwarded }: ForwardComplaintModalProps) {
   const { getWilayaName, getDairaName } = useLocations();
   const [deputies, setDeputies] = useState<LocalDeputy[]>([]);
   const [selectedDeputy, setSelectedDeputy] = useState<LocalDeputy | null>(null);
@@ -37,16 +39,16 @@ export function ForwardComplaintModal({ complaint, mpName, onClose, onForwarded 
 
   useEffect(() => {
     loadDeputies();
-  }, [complaint.wilayaId, complaint.dairaId]);
+  }, [mpWilayaId, mpDairaId]);
 
   const loadDeputies = async () => {
     try {
-      // Load deputies from the same wilaya AND daira
+      // Load deputies from the same wilaya AND daira as the MP
       const { data, error } = await supabase
         .from('local_deputies')
         .select('*')
-        .eq('wilaya_id', complaint.wilayaId)
-        .eq('daira_id', complaint.dairaId)
+        .eq('wilaya_id', mpWilayaId)
+        .eq('daira_id', mpDairaId)
         .eq('is_active', true);
 
       if (error) throw error;
