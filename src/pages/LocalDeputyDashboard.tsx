@@ -25,7 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'لوحة التحكم', id: 'dashboard' },
-  { icon: MessageSquare, label: 'الشكاوى', id: 'complaints' },
+  { icon: MessageSquare, label: 'الطلبات', id: 'complaints' },
   { icon: PieChart, label: 'التقارير', id: 'reports' },
   { icon: User, label: 'الملف الشخصي', id: 'profile' },
   { icon: Settings, label: 'الإعدادات', id: 'settings' },
@@ -110,7 +110,7 @@ export default function LocalDeputyDashboard() {
       setComplaints(data || []);
     } catch (error) {
       console.error('Error loading complaints:', error);
-      toast.error('خطأ في تحميل الشكاوى');
+      toast.error('خطأ في تحميل الطلبات');
     } finally {
       setLoading(false);
     }
@@ -389,10 +389,10 @@ export default function LocalDeputyDashboard() {
               <div className="bg-secondary/10 border border-secondary/30 rounded-xl p-4 mb-6">
                 <div className="flex items-center gap-2 mb-2">
                   <Building2 className="w-5 h-5 text-secondary" />
-                  <p className="font-bold text-secondary">شكاوى بلدية محوّلة</p>
+                  <p className="font-bold text-secondary">طلبات بلدية محوّلة</p>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  تصلك الشكاوى المحوّلة من نواب الشعب الخاصة بدائرتك
+                  تصلك الطلبات المحوّلة من نواب الشعب الخاصة بدائرتك
                 </p>
               </div>
 
@@ -401,7 +401,7 @@ export default function LocalDeputyDashboard() {
                 <div className="bg-card rounded-2xl p-4 border border-border">
                   <MessageSquare className="w-8 h-8 text-secondary mb-2" />
                   <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                  <p className="text-sm text-muted-foreground">إجمالي الشكاوى</p>
+                  <p className="text-sm text-muted-foreground">إجمالي الطلبات</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border">
                   <Clock className="w-8 h-8 text-warning mb-2" />
@@ -421,11 +421,11 @@ export default function LocalDeputyDashboard() {
               </div>
 
               {/* Recent Complaints */}
-              <h3 className="text-lg font-bold text-foreground mb-4">الشكاوى الأخيرة</h3>
+              <h3 className="text-lg font-bold text-foreground mb-4">الطلبات الأخيرة</h3>
               {complaints.length === 0 ? (
                 <div className="bg-card rounded-xl p-8 border border-border text-center">
                   <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">لا توجد شكاوى محوّلة حالياً</p>
+                  <p className="text-muted-foreground">لا توجد طلبات محوّلة حالياً</p>
                 </div>
               ) : (
                 <div className="space-y-3">
