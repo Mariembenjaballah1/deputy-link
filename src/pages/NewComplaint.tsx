@@ -57,6 +57,7 @@ export default function NewComplaint() {
   const [selectedWilaya, setSelectedWilaya] = useState<string | null>(null);
   const [selectedDaira, setSelectedDaira] = useState<string | null>(null);
   const [mps, setMps] = useState<MP[]>([]);
+  const [selectedMpId, setSelectedMpId] = useState<string | null>(null);
   const [isLoadingMps, setIsLoadingMps] = useState(false);
   
   // Database data
@@ -96,12 +97,16 @@ export default function NewComplaint() {
 
   // All complaints go to MP first, MP can forward to local deputy if needed
 
-  // Load MPs from database when wilaya changes
+  // Load MPs from database when daira changes
   useEffect(() => {
-    if (selectedWilaya) {
+    if (selectedDaira) {
       loadMPs();
+      setSelectedMpId(null);
+    } else {
+      setMps([]);
+      setSelectedMpId(null);
     }
-  }, [selectedWilaya]);
+  }, [selectedDaira]);
 
   const loadMPs = async () => {
     setIsLoadingMps(true);
@@ -109,7 +114,7 @@ export default function NewComplaint() {
       const { data, error } = await supabase
         .from('mps')
         .select('*')
-        .eq('wilaya_id', selectedWilaya);
+        .eq('daira_id', selectedDaira);
 
       if (error) {
         console.error('Error loading MPs:', error);
@@ -135,9 +140,9 @@ export default function NewComplaint() {
     }
   };
 
-  // All complaints go to MP first
-  const assignedMP = selectedWilaya && mps.length > 0
-    ? mps[0]
+  // Get selected MP
+  const assignedMP = selectedMpId 
+    ? mps.find(mp => mp.id === selectedMpId) || null
     : null;
 
   const isMunicipal = category ? isMunicipalCategory(category) : false;
@@ -545,14 +550,75 @@ export default function NewComplaint() {
                 </SheetContent>
               </Sheet>
 
-              {/* Assigned MP - all complaints go to MP first */}
+              {/* MP Selection - show after daira is selected */}
+              {selectedDaira && (
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <button className="w-full p-4 rounded-xl border-2 border-border bg-card text-right">
+                      <p className="text-xs text-muted-foreground mb-1">نائب الشعب</p>
+                      <p className="font-medium text-foreground">
+                        {isLoadingMps 
+                          ? 'جاري التحميل...' 
+                          : assignedMP 
+                            ? assignedMP.name 
+                            : 'اختر نائب الشعب'
+                        }
+                      </p>
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="rounded-t-3xl px-4 pb-8">
+                    <SheetHeader className="text-right">
+                      <SheetTitle>اختر نائب الشعب</SheetTitle>
+                    </SheetHeader>
+                    <div className="grid grid-cols-1 gap-3 mt-6 overflow-y-auto max-h-[35vh]">
+                      {isLoadingMps ? (
+                        <div className="flex justify-center py-8">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                      ) : mps.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">
+                          لا يوجد نائب شعب مسجّل لهذه الدائرة
+                        </p>
+                      ) : (
+                        mps.map((mp) => (
+                          <button
+                            key={mp.id}
+                            onClick={() => setSelectedMpId(mp.id)}
+                            className={cn(
+                              "flex items-center gap-3 p-3 rounded-xl border-2 transition-all",
+                              selectedMpId === mp.id
+                                ? "border-primary bg-primary/10"
+                                : "border-border bg-card hover:border-primary/50"
+                            )}
+                          >
+                            <img
+                              src={mp.image}
+                              alt={mp.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                            <div className="text-right flex-1">
+                              <p className="font-bold text-foreground">{mp.name}</p>
+                              <p className="text-sm text-muted-foreground">{mp.wilaya}</p>
+                            </div>
+                            {selectedMpId === mp.id && (
+                              <Check className="w-5 h-5 text-primary" />
+                            )}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              )}
+
+              {/* Selected MP confirmation */}
               {assignedMP && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 rounded-xl bg-primary/10 border-2 border-primary/30"
                 >
-                  <p className="text-xs text-primary mb-2 font-medium">نائب الشعب المختص</p>
+                  <p className="text-xs text-primary mb-2 font-medium">نائب الشعب المختار</p>
                   <div className="flex items-center gap-3">
                     <img
                       src={assignedMP.image}
