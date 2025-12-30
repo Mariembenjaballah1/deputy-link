@@ -94,15 +94,40 @@ export default function LocalDeputyDashboard() {
   });
 
   useEffect(() => {
+    if (!user?.id) return;
+    
     loadComplaints();
-  }, []);
+    
+    // Subscribe to real-time updates for this deputy's complaints
+    const channel = supabase
+      .channel(`deputy-complaints-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'complaints',
+          filter: `forwarded_to_deputy_id=eq.${user.id}`
+        },
+        () => {
+          loadComplaints();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const loadComplaints = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('complaints')
         .select('*')
-        .not('forwarded_to_deputy_id', 'is', null)
+        .eq('forwarded_to_deputy_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

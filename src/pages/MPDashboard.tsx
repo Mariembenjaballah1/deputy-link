@@ -119,18 +119,20 @@ export default function MPDashboard() {
 
   // Load complaints from database
   useEffect(() => {
+    if (!user?.id) return;
+    
     loadComplaints();
     
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates for this MP's complaints
     const channel = supabase
-      .channel('complaints-changes')
+      .channel(`mp-complaints-${user.id}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'complaints',
-          filter: 'assigned_to=eq.mp'
+          filter: `mp_id=eq.${user.id}`
         },
         () => {
           loadComplaints();
@@ -141,14 +143,16 @@ export default function MPDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user?.id]);
 
   const loadComplaints = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('complaints')
         .select('*')
-        .eq('assigned_to', 'mp')
+        .eq('mp_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
