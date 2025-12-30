@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { ComplaintCategory, categoryLabels, categoryMinistries, isMunicipalCategory, MP, LocalDeputy } from '@/types';
+import { ComplaintCategory, categoryLabels, categoryMinistries, isMunicipalCategory, MP } from '@/types';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 interface DbWilaya {
@@ -94,14 +94,14 @@ export default function NewComplaint() {
     ? dairas.filter(d => d.wilaya_id === selectedWilaya)
     : [];
 
-  const isMunicipal = category ? isMunicipalCategory(category) : false;
+  // All complaints go to MP first, MP can forward to local deputy if needed
 
   // Load MPs from database when wilaya changes
   useEffect(() => {
-    if (selectedWilaya && !isMunicipal) {
+    if (selectedWilaya) {
       loadMPs();
     }
-  }, [selectedWilaya, isMunicipal]);
+  }, [selectedWilaya]);
 
   const loadMPs = async () => {
     setIsLoadingMps(true);
@@ -135,26 +135,13 @@ export default function NewComplaint() {
     }
   };
 
-  const assignedMP = selectedWilaya && !isMunicipal && mps.length > 0
+  // All complaints go to MP first
+  const assignedMP = selectedWilaya && mps.length > 0
     ? mps[0]
     : null;
 
-  // For local deputies, we don't have a table yet, so show a placeholder
-  const assignedLocalDeputy: LocalDeputy | null = selectedWilaya && selectedDaira && isMunicipal
-    ? {
-        id: 'placeholder',
-        name: 'نائب الجهة',
-        image: 'https://ui-avatars.com/api/?name=نائب&background=random',
-        wilaya: wilayas.find(w => w.id === selectedWilaya)?.name || '',
-        wilayaId: selectedWilaya,
-        dairaId: selectedDaira,
-        daira: dairas.find(d => d.id === selectedDaira)?.name || '',
-        complaintsCount: 0,
-        responseRate: 0,
-      }
-    : null;
-
-  const ministry = category && !isMunicipal ? categoryMinistries[category] : null;
+  const isMunicipal = category ? isMunicipalCategory(category) : false;
+  const ministry = category ? categoryMinistries[category] : null;
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -220,6 +207,7 @@ export default function NewComplaint() {
     setIsSubmitting(true);
     
     try {
+      // All complaints go to MP first
       const complaintData = {
         user_id: 'anonymous', // Would use auth user id in production
         user_phone: '',
@@ -229,8 +217,8 @@ export default function NewComplaint() {
         wilaya_id: selectedWilaya,
         daira_id: selectedDaira,
         mp_id: assignedMP?.id || null,
-        local_deputy_id: isMunicipal ? 'local' : null,
-        assigned_to: isMunicipal ? 'local_deputy' : 'mp',
+        local_deputy_id: null,
+        assigned_to: 'mp',
         status: 'pending',
       };
 
@@ -240,15 +228,11 @@ export default function NewComplaint() {
 
       if (error) throw error;
       
-      if (isMunicipal) {
-        toast.success('تم إرسال الطلب إلى نائب الجهة', {
-          description: 'سيتم معالجة طلبك في أقرب وقت',
-        });
-      } else {
-        toast.success('تم إرسال الطلب إلى نائب الشعب', {
-          description: `سيتم توجيهه إلى ${ministry}`,
-        });
-      }
+      toast.success('تم إرسال الطلب إلى نائب الشعب', {
+        description: isMunicipal 
+          ? 'قد يتم تحويله لاحقًا لنائب الجهة' 
+          : `سيتم توجيهه إلى ${ministry}`,
+      });
       
       navigate('/complaints');
     } catch (error) {
@@ -261,7 +245,7 @@ export default function NewComplaint() {
 
   const canProceedStep1 = content.trim().length > 10;
   const canProceedStep2 = category !== null;
-  const canProceedStep3 = selectedWilaya && selectedDaira && (isMunicipal ? assignedLocalDeputy : assignedMP);
+  const canProceedStep3 = selectedWilaya && selectedDaira && assignedMP;
 
   return (
     <div className="min-h-screen bg-background">
@@ -458,9 +442,7 @@ export default function NewComplaint() {
           >
             <h2 className="text-xl font-bold text-foreground mb-2">التوجيه الجغرافي</h2>
             <p className="text-sm text-muted-foreground mb-6">
-              {isMunicipal 
-                ? 'حدد الولاية والدائرة لتوجيه شكوتك لنائب الجهة'
-                : 'حدد الولاية والدائرة لتوجيه شكوتك للنائب المختص'}
+              حدد الولاية والدائرة لتوجيه شكوتك لنائب الشعب المختص
             </p>
 
             {/* Category & Ministry Info */}
@@ -563,34 +545,8 @@ export default function NewComplaint() {
                 </SheetContent>
               </Sheet>
 
-              {/* Assigned Local Deputy (for municipal) */}
-              {isMunicipal && assignedLocalDeputy && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-xl bg-secondary/10 border-2 border-secondary/30"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="w-4 h-4 text-secondary" />
-                    <p className="text-xs text-secondary font-medium">نائب الجهة المختص</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={assignedLocalDeputy.image}
-                      alt={assignedLocalDeputy.name}
-                      className="w-12 h-12 rounded-full object-cover ring-2 ring-secondary/30"
-                    />
-                    <div>
-                      <p className="font-bold text-foreground">{assignedLocalDeputy.name}</p>
-                      <p className="text-sm text-muted-foreground">{assignedLocalDeputy.daira} - {assignedLocalDeputy.wilaya}</p>
-                    </div>
-                    <Check className="w-6 h-6 text-secondary mr-auto" />
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Assigned MP (for non-municipal) */}
-              {!isMunicipal && assignedMP && (
+              {/* Assigned MP - all complaints go to MP first */}
+              {assignedMP && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -609,7 +565,11 @@ export default function NewComplaint() {
                     </div>
                     <Check className="w-6 h-6 text-primary mr-auto" />
                   </div>
-                  {ministry && (
+                  {isMunicipal ? (
+                    <p className="text-xs text-secondary/70 mt-3 bg-secondary/5 p-2 rounded-lg">
+                      🏛️ شكوى بلدية - قد يتم تحويلها لاحقًا لنائب الجهة
+                    </p>
+                  ) : ministry && (
                     <p className="text-xs text-primary/70 mt-3 bg-primary/5 p-2 rounded-lg">
                       📋 سيتم توجيه الطلب إلى: {ministry}
                     </p>
