@@ -227,17 +227,39 @@ export default function NewComplaint() {
         status: 'pending',
       };
 
-      const { error } = await supabase
+      const { data: insertedComplaint, error } = await supabase
         .from('complaints')
-        .insert(complaintData);
+        .insert(complaintData)
+        .select()
+        .single();
 
       if (error) throw error;
       
-      toast.success('تم إرسال الطلب إلى نائب الشعب', {
-        description: isMunicipal 
-          ? 'قد يتم تحويله لاحقًا لنائب الجهة' 
-          : `سيتم توجيهه إلى ${ministry}`,
+      // Create notification for the MP
+      if (assignedMP?.id) {
+        await supabase.from('notifications').insert({
+          user_id: assignedMP.id,
+          user_type: 'mp',
+          title: 'شكوى جديدة',
+          description: `وصلتك شكوى جديدة في فئة ${categoryLabels[category]}`,
+          complaint_id: insertedComplaint.id,
+        });
+      }
+      
+      toast.success('✅ تم إرسال شكواك بنجاح!', {
+        description: `وصلت الشكوى إلى النائب: ${assignedMP?.name || 'نائب الشعب'}`,
+        duration: 5000,
       });
+      
+      // Show additional confirmation for municipal complaints
+      if (isMunicipal) {
+        setTimeout(() => {
+          toast.info('📋 ملاحظة', {
+            description: 'قد يتم تحويل شكواك البلدية لنائب الجهة للمتابعة',
+            duration: 4000,
+          });
+        }, 1500);
+      }
       
       navigate('/complaints');
     } catch (error) {
