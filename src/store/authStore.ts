@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { User, UserRole, AuthState } from '@/types/auth';
 
 interface AuthStore extends AuthState {
-  login: (phone: string, role: UserRole, name?: string, image?: string, wilayaId?: string, dairaId?: string) => void;
+  login: (phone: string, role: UserRole, name?: string, image?: string, wilayaId?: string, dairaId?: string, id?: string) => void;
   logout: () => void;
   setUser: (user: User) => void;
   updateWilaya: (wilayaId: string, dairaId?: string) => void;
@@ -24,10 +24,10 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       isAuthenticated: false,
       isLoading: false,
-      login: (phone: string, role: UserRole, name?: string, image?: string, wilayaId?: string, dairaId?: string) => {
+      login: (phone: string, role: UserRole, name?: string, image?: string, wilayaId?: string, dairaId?: string, id?: string) => {
         const defaultName = role === 'citizen' ? 'مواطن' : role === 'mp' ? 'نائب الشعب' : role === 'local_deputy' ? 'نائب الجهة' : 'مدير';
         const user: User = mockUsers[phone] || {
-          id: Date.now().toString(),
+          id: id || Date.now().toString(),
           phone,
           role,
           name: name || defaultName,

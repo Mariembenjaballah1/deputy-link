@@ -160,7 +160,7 @@ export default function Auth() {
     setIsLoading(true);
     
     try {
-      let userData = { name: 'مستخدم', image: '', wilayaId: '', dairaId: '' };
+      let userData = { id: '', name: 'مستخدم', image: '', wilayaId: '', dairaId: '' };
       
       // Fetch user data based on role
       if (selectedRole === 'mp') {
@@ -172,6 +172,7 @@ export default function Auth() {
         
         if (mp) {
           userData = {
+            id: mp.id,
             name: mp.name,
             image: mp.image || '',
             wilayaId: mp.wilaya_id || '',
@@ -187,6 +188,7 @@ export default function Auth() {
         
         if (deputy) {
           userData = {
+            id: deputy.id,
             name: deputy.name,
             image: deputy.image || '',
             wilayaId: deputy.wilaya_id || '',
@@ -195,7 +197,7 @@ export default function Auth() {
         }
       }
       
-      login(phone, selectedRole, userData.name, userData.image, userData.wilayaId, userData.dairaId);
+      login(phone, selectedRole, userData.name, userData.image, userData.wilayaId, userData.dairaId, userData.id);
       toast.success('تم تسجيل الدخول بنجاح');
       
       if (selectedRole === 'citizen') {
