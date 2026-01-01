@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Filter, Eye, Search, Loader2 } from 'lucide-react';
+import { Filter, Eye, Search, Loader2, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
@@ -100,6 +102,23 @@ export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTablePr
     } catch (error) {
       console.error('Error:', error);
       setComplaints([]);
+    }
+  };
+
+  const handleDeleteComplaint = async (complaintId: string) => {
+    try {
+      const { error } = await supabase
+        .from('complaints')
+        .delete()
+        .eq('id', complaintId);
+
+      if (error) throw error;
+
+      toast.success('تم حذف الطلب بنجاح');
+      loadComplaints();
+    } catch (error) {
+      console.error('Error deleting complaint:', error);
+      toast.error('خطأ في حذف الطلب');
     }
   };
 
@@ -343,13 +362,39 @@ export function AdminComplaintsTable({ onViewComplaint }: AdminComplaintsTablePr
                     {new Date(complaint.createdAt).toLocaleDateString('ar-TN')}
                   </td>
                   <td className="p-4">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => onViewComplaint?.(complaint)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => onViewComplaint?.(complaint)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              سيتم حذف هذا الطلب نهائياً ولا يمكن استرجاعه.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeleteComplaint(complaint.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              حذف
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </td>
                 </tr>
               ))}
