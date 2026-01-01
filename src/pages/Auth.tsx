@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Lock, ArrowLeft, User, Users, Shield, Building2, UserPlus, CheckCircle, Clock, XCircle, Loader2, HelpCircle, Download } from 'lucide-react';
+import { Phone, Lock, ArrowLeft, User, Users, Shield, Building2, UserPlus, CheckCircle, Clock, XCircle, Loader2, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocations } from '@/hooks/useLocations';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { CommunityCompanyFAQ } from '@/components/home/CommunityCompanyFAQ';
+
 
 const roles: { id: UserRole; label: string; icon: typeof User; description: string }[] = [
   { id: 'citizen', label: 'مواطن', icon: User, description: 'تقديم ومتابعة الطلبات' },
@@ -29,7 +29,7 @@ export default function Auth() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showFAQ, setShowFAQ] = useState(false);
+  
   
   // Registration fields
   const [registerName, setRegisterName] = useState('');
@@ -325,15 +325,6 @@ export default function Auth() {
                 </button>
               ))}
               
-              {/* Community Company FAQ Button */}
-              <Button
-                variant="outline"
-                className="w-full mt-4 bg-card/10 backdrop-blur-lg border-primary-foreground/20 text-primary-foreground hover:bg-card/20"
-                onClick={() => setShowFAQ(true)}
-              >
-                <HelpCircle className="w-5 h-5 ml-2" />
-                استفسار حول الشركات الأهلية
-              </Button>
               
               {/* Install App Button */}
               <Link to="/install" className="w-full">
@@ -639,7 +630,7 @@ export default function Auth() {
         </AnimatePresence>
       </div>
       
-      <CommunityCompanyFAQ open={showFAQ} onOpenChange={setShowFAQ} />
+      
     </div>
   );
 }
