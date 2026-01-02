@@ -472,7 +472,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      refresh_mp_stats: { Args: { p_mp_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
