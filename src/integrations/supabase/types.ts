@@ -186,6 +186,7 @@ export type Database = {
       local_deputies: {
         Row: {
           bio: string | null
+          complaints_count: number | null
           created_at: string
           daira_id: string
           email: string | null
@@ -194,12 +195,14 @@ export type Database = {
           is_active: boolean | null
           name: string
           phone: string | null
+          response_rate: number | null
           updated_at: string
           whatsapp_number: string | null
           wilaya_id: string
         }
         Insert: {
           bio?: string | null
+          complaints_count?: number | null
           created_at?: string
           daira_id: string
           email?: string | null
@@ -208,12 +211,14 @@ export type Database = {
           is_active?: boolean | null
           name: string
           phone?: string | null
+          response_rate?: number | null
           updated_at?: string
           whatsapp_number?: string | null
           wilaya_id: string
         }
         Update: {
           bio?: string | null
+          complaints_count?: number | null
           created_at?: string
           daira_id?: string
           email?: string | null
@@ -222,6 +227,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           phone?: string | null
+          response_rate?: number | null
           updated_at?: string
           whatsapp_number?: string | null
           wilaya_id?: string
@@ -472,6 +478,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      refresh_local_deputy_stats: {
+        Args: { p_deputy_id: string }
+        Returns: undefined
+      }
       refresh_mp_stats: { Args: { p_mp_id: string }; Returns: undefined }
     }
     Enums: {
