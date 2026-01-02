@@ -68,12 +68,14 @@ const Index = () => {
     }
   };
 
-  // Filter MPs by wilaya and search query
+  // Filter MPs by wilaya and search query (from Header or Sheet)
+  const activeSearchQuery = searchQuery || mpSearchQuery;
   const filteredMPs = mps.filter(mp => {
     const matchesWilaya = !selectedWilaya || mp.wilayaId === selectedWilaya;
-    const matchesSearch = !mpSearchQuery || 
-      mp.name.toLowerCase().includes(mpSearchQuery.toLowerCase()) ||
-      mp.wilaya.toLowerCase().includes(mpSearchQuery.toLowerCase());
+    const matchesSearch = !activeSearchQuery || 
+      mp.name.toLowerCase().includes(activeSearchQuery.toLowerCase()) ||
+      mp.wilaya.toLowerCase().includes(activeSearchQuery.toLowerCase()) ||
+      (mp.bloc && mp.bloc.toLowerCase().includes(activeSearchQuery.toLowerCase()));
     return matchesWilaya && matchesSearch;
   });
 
@@ -124,17 +126,17 @@ const Index = () => {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : mps.length > 0 ? (
+          ) : filteredMPs.length > 0 ? (
             <div className="space-y-3">
-              {mps.slice(0, 5).map((mp, index) => (
+              {filteredMPs.slice(0, 5).map((mp, index) => (
                 <MPCard key={mp.id} mp={mp} index={index} />
               ))}
-              {mps.length > 5 && (
+              {filteredMPs.length > 5 && (
                 <button 
                   onClick={() => setShowMPsSheet(true)}
                   className="w-full py-3 text-primary font-medium hover:bg-primary/5 rounded-xl transition-colors"
                 >
-                  عرض كل النواب ({mps.length})
+                  عرض كل النواب ({filteredMPs.length})
                 </button>
               )}
             </div>
