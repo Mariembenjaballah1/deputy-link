@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Search, Building2 } from 'lucide-react';
+import { Loader2, Search, Building2, Sparkles, ChevronLeft } from 'lucide-react';
 import { MP } from '@/types';
 
 const Index = () => {
@@ -96,28 +96,59 @@ const Index = () => {
           />
         </motion.div>
 
-        {/* Community Company FAQ Button */}
+        {/* Community Company FAQ Button - Enhanced */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
           className="mb-6"
         >
-          <Button
+          <motion.button
             onClick={() => setShowFAQ(true)}
-            variant="outline"
-            className="w-full py-6 rounded-2xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all group"
+            className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary via-primary/90 to-primary/80 p-[2px] shadow-[0_8px_30px_hsl(var(--primary)/0.4)] group"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <div className="flex items-center gap-4 w-full">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
-                <Building2 className="w-6 h-6" />
+            {/* Animated gradient border */}
+            <div className="absolute inset-0 bg-gradient-to-l from-accent via-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
+            
+            <div className="relative bg-card rounded-[14px] p-5">
+              <div className="flex items-center gap-4 w-full">
+                {/* Animated Icon Container */}
+                <motion.div 
+                  className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center relative"
+                  animate={{ 
+                    boxShadow: ["0 0 0 0 hsl(var(--primary)/0.4)", "0 0 0 10px hsl(var(--primary)/0)", "0 0 0 0 hsl(var(--primary)/0.4)"]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Building2 className="w-7 h-7 text-primary" />
+                  <Sparkles className="w-4 h-4 text-accent absolute -top-1 -right-1 animate-pulse" />
+                </motion.div>
+                
+                <div className="flex-1 text-right">
+                  <h3 className="font-bold text-foreground text-lg mb-1 group-hover:text-primary transition-colors">
+                    استفسار حول الشركات الأهلية
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    معلومات شاملة عن التأسيس والإدارة
+                  </p>
+                </div>
+                
+                {/* Arrow indicator */}
+                <motion.div
+                  className="text-primary"
+                  animate={{ x: [0, -5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </motion.div>
               </div>
-              <div className="flex-1 text-right">
-                <h3 className="font-bold text-foreground text-base">استفسار حول الشركات الأهلية</h3>
-                <p className="text-sm text-muted-foreground">معلومات شاملة عن التأسيس والإدارة</p>
-              </div>
+              
+              {/* Bottom highlight bar */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-l from-accent via-primary to-accent opacity-50 group-hover:opacity-100 transition-opacity" />
             </div>
-          </Button>
+          </motion.button>
         </motion.div>
 
         <div className="space-y-4">
