@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Search, Building2, Mail } from 'lucide-react';
+import { Loader2, Search, Building2 } from 'lucide-react';
 import { MP } from '@/types';
 
 const Index = () => {
@@ -96,35 +96,27 @@ const Index = () => {
           />
         </motion.div>
 
-        {/* Action Buttons */}
+        {/* Community Company FAQ Button */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-6 grid grid-cols-2 gap-3"
+          className="mb-6"
         >
-          {/* Create Correspondence Button */}
-          <Button
-            onClick={() => window.location.href = '/complaint/new'}
-            variant="outline"
-            className="h-auto py-4 px-3 rounded-2xl border-2 border-accent/30 bg-accent/5 hover:bg-accent/10 hover:border-accent/50 transition-all group flex-col items-center gap-2"
-          >
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent group-hover:bg-accent/20 transition-colors">
-              <Mail className="w-5 h-5" />
-            </div>
-            <span className="font-bold text-foreground text-sm">إنشاء مراسلة</span>
-          </Button>
-
-          {/* Community Company FAQ Button */}
           <Button
             onClick={() => setShowFAQ(true)}
             variant="outline"
-            className="h-auto py-4 px-3 rounded-2xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all group flex-col items-center gap-2"
+            className="w-full py-6 rounded-2xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all group"
           >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
-              <Building2 className="w-5 h-5" />
+            <div className="flex items-center gap-4 w-full">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div className="flex-1 text-right">
+                <h3 className="font-bold text-foreground text-base">استفسار حول الشركات الأهلية</h3>
+                <p className="text-sm text-muted-foreground">معلومات شاملة عن التأسيس والإدارة</p>
+              </div>
             </div>
-            <span className="font-bold text-foreground text-sm">الشركات الأهلية</span>
           </Button>
         </motion.div>
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Edit, Trash2, Save, Loader2 } from 'lucide-react';
+import { X, Edit, Trash2, Save, Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -168,51 +168,66 @@ export function ComplaintDetailModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          {isEditing ? (
-            <>
-              <Button variant="ghost" onClick={() => setIsEditing(false)} disabled={isSaving}>
-                إلغاء
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 ml-2" />}
-                حفظ
-              </Button>
-            </>
-          ) : (
-            <>
-              {canEdit && complaint.status === 'pending' && (
-                <Button variant="outline" onClick={handleEdit}>
-                  <Edit className="w-4 h-4 ml-2" />
-                  تعديل
+        <DialogFooter className="flex-col gap-3 sm:flex-col">
+          {/* Create Correspondence Button */}
+          <Button 
+            variant="outline" 
+            className="w-full gap-2 border-accent/30 bg-accent/5 hover:bg-accent/10 hover:border-accent/50"
+            onClick={() => {
+              // TODO: Implement correspondence creation
+              toast.info('قريباً - إنشاء مراسلة');
+            }}
+          >
+            <Mail className="w-4 h-4 text-accent" />
+            إنشاء مراسلة
+          </Button>
+
+          <div className="flex gap-2 w-full justify-end">
+            {isEditing ? (
+              <>
+                <Button variant="ghost" onClick={() => setIsEditing(false)} disabled={isSaving}>
+                  إلغاء
                 </Button>
-              )}
-              {canDelete && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" disabled={isDeleting}>
-                      {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 ml-2" />}
-                      حذف
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        سيتم حذف هذا الطلب نهائياً ولا يمكن استرجاعه.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+                <Button onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 ml-2" />}
+                  حفظ
+                </Button>
+              </>
+            ) : (
+              <>
+                {canEdit && complaint.status === 'pending' && (
+                  <Button variant="outline" onClick={handleEdit}>
+                    <Edit className="w-4 h-4 ml-2" />
+                    تعديل
+                  </Button>
+                )}
+                {canDelete && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" disabled={isDeleting}>
+                        {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 ml-2" />}
                         حذف
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </>
-          )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          سيتم حذف هذا الطلب نهائياً ولا يمكن استرجاعه.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+                          حذف
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
