@@ -914,6 +914,16 @@ export default function MPDashboard() {
                 />
               </div>
 
+              {/* Create Official Letter Button */}
+              <Button 
+                variant="hero" 
+                className="w-full gap-2 mb-4" 
+                onClick={() => handleGenerateLetter(selectedComplaint)}
+              >
+                <FileText className="w-4 h-4" />
+                إنشاء مراسلة رسمية
+              </Button>
+
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" className="gap-2" onClick={() => handleStatusChange('viewed')}>
                   <Eye className="w-4 h-4" />
